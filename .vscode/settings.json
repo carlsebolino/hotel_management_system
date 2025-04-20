@@ -1,0 +1,36 @@
+{
+    // formatting
+    "files.encoding": "utf8",
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "python.terminal.activateEnvironment": true,
+    "python.languageServer": "Pylance",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.indexing": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit",
+        }
+    },
+    "isort.args": [
+        "--profile",
+        "black",
+    ],
+    "html.format.enable": false,
+    "[django-html]": {
+        "editor.quickSuggestions": {
+            "other": true,
+            "comments": true,
+            "strings": true
+        },
+        "editor.tabSize": 2,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "junstyle.vscode-django-support"
+    },
+    "diffEditor.ignoreTrimWhitespace": false,
+    "files.associations": {
+        "*.tpl": "django-html"
+    }
+}

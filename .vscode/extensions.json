@@ -1,0 +1,12 @@
+{
+    // See https://code.visualstudio.com/docs/configure/extensions/extension-marketplace#_workspace-recommended-extensions to learn more about workspace recommendations
+    // List of extensions which should be recommended for users of this workspace
+    "recommendations": [
+        "ms-python.python",
+        "EditorConfig.EditorConfig",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "ms-python.isort",
+        "junstyle.vscode-django-support",
+    ]
+}
