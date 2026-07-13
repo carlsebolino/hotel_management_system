@@ -1,0 +1,11 @@
+trigger:
+  branches:
+    include:
+      - dev
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  buildConfiguration: "Release"
+  solution: "**/SourcePlayerAPI.sln"

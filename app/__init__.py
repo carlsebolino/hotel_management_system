@@ -27,6 +27,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(blueprint=auth_bp, url_prefix="/auth")
 
+    from app.users import bp as users_bp
+
+    app.register_blueprint(blueprint=users_bp, url_prefix="/users")
+
     return app
 
 
