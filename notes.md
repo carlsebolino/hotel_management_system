@@ -20,3 +20,18 @@ flask db upgrade
 ## flask shell
 - The `shell` command is the second core command implemented by Flask, after `run`.
 - The purpose of this command is to start a Python interpreter in the context of the application.
+
+## Running the development server
+Use the default project settings:
+
+```powershell
+flask run
+```
+
+This repository includes a `.flaskenv` file, which `python-dotenv` loads automatically for Flask CLI commands. It sets `FLASK_APP=main`, enables debug mode, and runs the development server on port `5001`.
+
+If Windows shows `An attempt was made to access a socket in a way forbidden by its access permissions`, the default Flask port (`5000`) is usually unavailable, reserved, or blocked by local networking/security software. Run on another port instead:
+
+```powershell
+flask --app main run --port 5001
+```
