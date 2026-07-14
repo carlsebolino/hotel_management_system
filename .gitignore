@@ -176,3 +176,8 @@ cython_debug/
 
 
 app.db
+
+# Frontend dependencies and build output
+frontend/node_modules/
+frontend/dist/
+frontend/.env

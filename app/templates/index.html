@@ -1,7 +1,0 @@
-{% extends 'base.html' %}
-
-{% block content %}
-  <div hx-get="{{ url_for('users.get_users') }}" hx-trigger="load" hx-target="#users-container" hx-swap="innerHTML"></div>
-
-  <div id="users-container"></div>
-{% endblock %}
