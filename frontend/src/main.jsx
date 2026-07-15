@@ -37,8 +37,8 @@ function App() {
         <p className="eyebrow">Decoupled architecture</p>
         <h1>Hotel Management System</h1>
         <p>
-          React and Vite own the client experience while Flask exposes JSON APIs
-          for backend data and workflows.
+          React and Vite own the client experience while Flask exposes JSON APIs for backend data
+          and workflows.
         </p>
       </section>
 
@@ -47,11 +47,7 @@ function App() {
           <h2>Users</h2>
           <span>{status}</span>
         </div>
-        {isLoading ? (
-          <p className="empty-state">Loading users...</p>
-        ) : (
-          <UsersTable users={users} />
-        )}
+        {isLoading ? <p className="empty-state">Loading users...</p> : <UsersTable users={users} />}
       </section>
     </main>
   );

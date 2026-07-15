@@ -1,0 +1,33 @@
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+include = '\\.pyi?$'
+exclude = '''
+/(
+  \.git
+  | \.venv
+  | migrations/versions
+  | frontend/node_modules
+  | frontend/dist
+)/
+'''
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+exclude = [
+  ".git",
+  ".venv",
+  "migrations/versions",
+  "frontend/node_modules",
+  "frontend/dist",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
