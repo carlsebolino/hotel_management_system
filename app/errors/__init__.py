@@ -6,4 +6,4 @@ bp = Blueprint(
     template_folder="templates",
 )
 
-from app.errors import handlers
+from app.errors import handlers as handlers

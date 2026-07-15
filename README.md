@@ -34,6 +34,54 @@ npm run dev
 
 Copy `frontend/.env.example` to `frontend/.env` to point the Vite app at a different Flask API URL. If `VITE_API_BASE_URL` is not set, the frontend uses `/api/v1`, which supports production deployments that route the React app and Flask API through the same origin.
 
+## Development tooling and code formatting
+
+The repository includes shared formatter and linter configuration so the same checks can run on a colleague's laptop, in an editor, or in CI.
+
+### One-time setup
+
+```bash
+make install-dev
+```
+
+This installs Python runtime and development dependencies from `requirements-dev.txt`, then installs frontend dependencies from `frontend/package.json`.
+
+If `make` is not available on your machine, run the equivalent commands manually:
+
+```bash
+python -m pip install -r requirements-dev.txt
+cd frontend
+npm install
+```
+
+### Formatting and linting commands
+
+```bash
+make format
+```
+
+Formats Python with Ruff/Black and frontend files with Prettier.
+
+```bash
+make format-check
+```
+
+Checks formatting without modifying files.
+
+```bash
+make lint
+```
+
+Runs Ruff for the Flask code and ESLint for the React code.
+
+```bash
+make verify
+```
+
+Runs formatting checks, linting, backend tests, and the frontend production build. Use this before opening a pull request.
+
+The formatting rules live in `pyproject.toml`, `frontend/.prettierrc.json`, and `.editorconfig`; frontend linting rules live in `frontend/eslint.config.js`.
+
 ## Flask CLI and database migrations
 
 ### Flask-Migrate
@@ -95,6 +143,9 @@ flask --app main run --port 5001
 ## Verification
 
 ```bash
+make verify
+
+# Or run the core checks directly:
 python -m unittest discover -s tests
 python -m compileall app main.py config.py tests
 cd frontend && npm run build

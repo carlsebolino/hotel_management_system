@@ -43,4 +43,4 @@ def register_blueprints(app):
     app.register_blueprint(errors_bp)
 
 
-from app import models
+from app import models as models
