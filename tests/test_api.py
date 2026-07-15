@@ -5,20 +5,20 @@ from app import create_app
 
 class ApiTestCase(unittest.TestCase):
     def setUp(self):
-        self.app = create_app()
+        self.app = create_app("testing")
         self.client = self.app.test_client()
 
     def test_health_check_returns_service_status(self):
-        response = self.client.get("/api/health")
+        response = self.client.get("/api/v1/health")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.get_json(),
-            {"service": "hotel-management-api", "status": "ok"},
+            {"apiVersion": "v1", "service": "hotel-management-api", "status": "ok"},
         )
 
     def test_users_returns_json_collection(self):
-        response = self.client.get("/api/users")
+        response = self.client.get("/api/v1/users")
         payload = response.get_json()
 
         self.assertEqual(response.status_code, 200)
@@ -26,16 +26,16 @@ class ApiTestCase(unittest.TestCase):
         self.assertEqual(len(payload["users"]), 3)
 
     def test_login_validates_required_credentials(self):
-        response = self.client.post("/api/auth/login", json={"username": "demo"})
+        response = self.client.post("/api/v1/auth/login", json={"username": "demo"})
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
-            response.get_json(), {"message": "Username and password are required."}
+            response.get_json()["errors"], {"password": "Password is required."}
         )
 
     def test_login_accepts_valid_credentials(self):
         response = self.client.post(
-            "/api/auth/login",
+            "/api/v1/auth/login",
             json={"username": "demo", "password": "secret", "rememberMe": True},
         )
 
@@ -45,7 +45,7 @@ class ApiTestCase(unittest.TestCase):
 
     def test_cors_headers_are_limited_to_configured_origins(self):
         response = self.client.get(
-            "/api/health", headers={"Origin": "http://localhost:5173"}
+            "/api/v1/health", headers={"Origin": "http://localhost:5173"}
         )
 
         self.assertEqual(
@@ -54,8 +54,20 @@ class ApiTestCase(unittest.TestCase):
         )
         self.assertEqual(response.headers.get("Vary"), "Origin")
 
+    def test_legacy_api_prefix_remains_available(self):
+        response = self.client.get("/api/health")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()["apiVersion"], "v1")
+
+    def test_security_headers_are_applied(self):
+        response = self.client.get("/api/v1/health")
+
+        self.assertEqual(response.headers.get("X-Content-Type-Options"), "nosniff")
+        self.assertEqual(response.headers.get("X-Frame-Options"), "DENY")
+
     def test_not_found_errors_are_json(self):
-        response = self.client.get("/api/missing")
+        response = self.client.get("/api/v1/missing")
         payload = response.get_json()
 
         self.assertEqual(response.status_code, 404)

@@ -1,52 +1,46 @@
-from flask import Flask, request
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
+import os
 
-from config import Config
+from flask import Flask
 
-db = SQLAlchemy()
-migrate = Migrate()
-
-
-def _normalize_origins(origins):
-    return [origin.strip() for origin in origins if origin.strip()]
+from app.extensions import db, migrate
+from app.security.cors import init_cors
+from app.security.headers import init_security_headers
+from config import Config, config_by_name
 
 
-def create_app(config_class=Config):
+def create_app(config_class=None):
+    resolved_config = _resolve_config(config_class)
+    validator = getattr(resolved_config, "validate", None)
+    if validator:
+        validator()
+
     app = Flask(__name__)
-    app.config.from_object(config_class)
-    app.config["CORS_ORIGINS"] = _normalize_origins(app.config["CORS_ORIGINS"])
-
-    @app.after_request
-    def add_cors_headers(response):
-        if not request.path.startswith("/api/"):
-            return response
-
-        origin = request.headers.get("Origin")
-        allowed_origins = app.config["CORS_ORIGINS"]
-        if "*" in allowed_origins:
-            response.headers["Access-Control-Allow-Origin"] = "*"
-        elif origin in allowed_origins:
-            response.headers["Access-Control-Allow-Origin"] = origin
-            response.headers["Vary"] = "Origin"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-        response.headers["Access-Control-Allow-Methods"] = (
-            "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-        )
-        return response
+    app.config.from_object(resolved_config)
 
     db.init_app(app=app)
     migrate.init_app(app=app, db=db)
-
-    from app.api import bp as api_bp
-
-    app.register_blueprint(blueprint=api_bp)
-
-    from app.errors import bp as errors_bp
-
-    app.register_blueprint(blueprint=errors_bp)
+    init_security_headers(app)
+    init_cors(app)
+    register_blueprints(app)
 
     return app
+
+
+def _resolve_config(config_class):
+    if config_class is None:
+        return config_by_name.get(os.environ.get("FLASK_ENV", "development"), Config)
+    if isinstance(config_class, str):
+        return config_by_name[config_class]
+    return config_class
+
+
+def register_blueprints(app):
+    from app.api.v1 import bp as api_v1_bp
+    from app.errors import bp as errors_bp
+
+    app.register_blueprint(api_v1_bp)
+    app.register_blueprint(api_v1_bp, name="api_legacy", url_prefix="/api")
+    app.register_blueprint(errors_bp)
 
 
 from app import models
