@@ -5,6 +5,12 @@ The application is split into independent backend and frontend layers:
 - `app/` contains the Flask backend. Flask exposes JSON APIs only and no longer renders the primary web UI.
 - `frontend/` contains the React + Vite client. The client talks to Flask through `VITE_API_BASE_URL`.
 
+## New developer onboarding
+
+Start with the junior-friendly documentation in [`docs/README.md`](docs/README.md).
+It includes the local setup, a first-run checklist, architecture and request-flow
+illustrations, common development patterns, and a guide for making a change safely.
+
 ## Backend
 
 ```bash
