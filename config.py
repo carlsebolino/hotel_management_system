@@ -36,6 +36,9 @@ class Config:
     API_VERSION = os.environ.get("API_VERSION", "v1")
     CORS_ORIGINS = _csv("CORS_ORIGINS", "http://localhost:5173")
     CORS_MAX_AGE = int(os.environ.get("CORS_MAX_AGE", "600"))
+    FRONTEND_DIST_DIR = os.environ.get(
+        "FRONTEND_DIST_DIR", str(base_dir / "frontend" / "dist")
+    )
 
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = os.environ.get("SESSION_COOKIE_SAMESITE", "Lax")

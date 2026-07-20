@@ -1,6 +1,7 @@
 import os
+from pathlib import Path
 
-from flask import Flask
+from flask import Flask, abort, send_from_directory
 
 from app.extensions import db, migrate
 from app.security.cors import init_cors
@@ -14,7 +15,10 @@ def create_app(config_class=None):
     if validator:
         validator()
 
-    app = Flask(__name__)
+    # Vite's build output is packaged beside ``app`` for App Service. Disable
+    # Flask's package-local static route so the same directory can serve both
+    # hashed assets and SPA routes from the deployment root.
+    app = Flask(__name__, static_folder=None)
     app.config.from_object(resolved_config)
 
     db.init_app(app=app)
@@ -22,6 +26,7 @@ def create_app(config_class=None):
     init_security_headers(app)
     init_cors(app)
     register_blueprints(app)
+    register_frontend_routes(app)
 
     return app
 
@@ -41,6 +46,29 @@ def register_blueprints(app):
     app.register_blueprint(api_v1_bp)
     app.register_blueprint(api_v1_bp, name="api_legacy", url_prefix="/api")
     app.register_blueprint(errors_bp)
+
+
+def register_frontend_routes(app):
+    """Serve the compiled Vite application without intercepting API failures."""
+    frontend_dist = Path(app.config["FRONTEND_DIST_DIR"])
+
+    @app.get("/")
+    @app.get("/<path:path>")
+    def frontend(path=""):
+        # Unknown API URLs must retain the API's JSON 404 response rather than
+        # returning the client application's HTML fallback.
+        if path == "api" or path.startswith("api/"):
+            abort(404)
+
+        requested_file = frontend_dist / path
+        if path and requested_file.is_file():
+            return send_from_directory(frontend_dist, path)
+
+        index_file = frontend_dist / "index.html"
+        if index_file.is_file():
+            return send_from_directory(frontend_dist, "index.html")
+
+        abort(404)
 
 
 from app import models as models

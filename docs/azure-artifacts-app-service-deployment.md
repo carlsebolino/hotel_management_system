@@ -16,16 +16,27 @@ Record these values:
 | Value | Example |
 | --- | --- |
 | Organization | `fabrikam` |
+| Project (project-scoped feeds only) | `hotel-platform` |
 | Feed | `shared-ui` |
 | Package scope | `@fabrikam` |
 | Package name and version | `@fabrikam/hotel-ui@^1.4.0` |
 
 `frontend/.npmrc` is intentionally a template. Replace
 `YOUR_NPM_SCOPE`, `YOUR_AZURE_DEVOPS_ORGANIZATION`, and
-`YOUR_AZURE_ARTIFACTS_FEED` with the first three values. Keep the package
+`YOUR_AZURE_ARTIFACTS_FEED` with the corresponding values. Keep the package
 scope and feed registry exact; the scope line makes npm ask Azure Artifacts
 only for packages in that scope. Do **not** put a personal access token (PAT)
 in `.npmrc` or source control.
+
+Azure Artifacts exposes two feed URL forms. Keep the active organization-scoped
+template when the feed belongs to the Azure DevOps organization. If the feed is
+project-scoped, comment out that line and activate the second template, replacing
+`YOUR_AZURE_DEVOPS_PROJECT` as well. A project-scoped registry URL must include
+the project segment between the organization and `_packaging`:
+
+```ini
+@fabrikam:registry=https://pkgs.dev.azure.com/fabrikam/hotel-platform/_packaging/shared-ui/npm/registry/
+```
 
 For a developer machine, Azure DevOps provides the feed's **Connect to feed**
 instructions. Use its generated user-level authentication entry (or an Azure
@@ -93,16 +104,18 @@ pipeline YAML free of credentials.
 3. Installs dependencies, runs ESLint, and executes `npm run build`. Vite emits
    compiled JavaScript, CSS, and assets in `frontend/dist`.
 4. Creates `hotel-management-app.zip` containing the Flask app, Python startup
-   files, requirements, and `frontend/dist`.
+   files, requirements, and `frontend/dist`. The Flask application serves the
+   compiled assets and returns `index.html` for non-API SPA routes.
 5. Publishes that ZIP and uses `AzureWebApp@1` to deploy it to the configured
    Linux App Service slot.
 
-The app must be configured to serve `frontend/dist` in production (or route it
-through a reverse proxy/CDN) and have its normal Python startup command,
-runtime, application settings, and database configuration set on the App
-Service slot. Put slot-specific settings in the slot configuration, not in the
-repository or pipeline YAML. After validating the slot, use an App Service slot
-swap to promote it to production.
+The packaged Flask application serves `frontend/dist` at the deployment root:
+it serves built files such as `/assets/...`, returns `index.html` for client-side
+routes, and preserves JSON 404 responses for `/api/...` paths. Set the normal
+Python startup command, runtime, application settings, and database
+configuration on the App Service slot. Put slot-specific settings in the slot
+configuration, not in the repository or pipeline YAML. After validating the
+slot, use an App Service slot swap to promote it to production.
 
 ## Troubleshooting
 
@@ -110,7 +123,9 @@ swap to promote it to production.
   the build identity's feed Reader permission. For cross-organization feeds,
   verify the npm service connection and PAT's Packaging Read scope.
 - **`npm` returns 404 for a scoped package:** npm is probably using the public
-  registry; confirm the `@scope:registry=...` line matches the package scope.
+  registry or the wrong feed URL; confirm the `@scope:registry=...` line matches
+  the package scope and includes the Azure DevOps project segment for a
+  project-scoped feed.
 - **`npm ci` says there is no lock file:** run `npm install` locally after
   adding the package and commit `frontend/package-lock.json`. Until then, this
   pipeline deliberately falls back to `npm install`.
