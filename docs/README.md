@@ -44,6 +44,8 @@ turning the other into a collection of special cases.
 If you already have Python 3.11+ and Node.js 20.19+ installed, the shortest
 path is:
 
+**macOS/Linux (bash):**
+
 ```bash
 # From the repository root
 python -m venv .venv
@@ -58,7 +60,25 @@ cd frontend && npm install && cd ..
 flask --app main db upgrade
 ```
 
+**Windows (PowerShell):**
+
+```powershell
+# From the repository root
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-dev.txt
+
+Copy-Item .env.sample .env
+Copy-Item frontend/.env.example frontend/.env
+# Edit frontend/.env and set VITE_API_BASE_URL=http://localhost:5001/api/v1
+
+Push-Location frontend; npm install; Pop-Location
+flask --app main db upgrade
+```
+
 Then use two terminals:
+
+**macOS/Linux (bash):**
 
 ```bash
 # Terminal 1: repository root, with .venv activated
@@ -68,6 +88,10 @@ flask --app main run --port 5001
 cd frontend
 npm run dev
 ```
+
+**Windows (PowerShell):** Start `flask --app main run --port 5001` in one
+PowerShell window after activating `.venv`; in a second window run
+`Set-Location frontend` followed by `npm run dev`.
 
 Open the address printed by Vite, usually `http://localhost:5173`. The users
 table should display three demo users and report that it is connected to the

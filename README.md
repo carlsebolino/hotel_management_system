@@ -20,6 +20,15 @@ pip install -r requirements.txt
 flask --app main run
 ```
 
+In Windows PowerShell, use the equivalent setup commands:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+flask --app main run
+```
+
 Available API endpoints are versioned for use by other applications:
 
 - `GET /api/v1/health`
@@ -52,7 +61,20 @@ make install-dev
 
 This installs Python runtime and development dependencies from `requirements-dev.txt`, then installs frontend dependencies from `frontend/package.json`.
 
-If `make` is not available on your machine, run the equivalent commands manually:
+On Windows, use the checked-in PowerShell task runner instead of installing
+Make:
+
+```powershell
+.\scripts\dev.ps1 install-dev
+```
+
+The task runner supports `install-dev`, `format`, `format-check`, `lint`,
+`test`, `build`, and `verify`; substitute any of those names in the command
+above. If PowerShell blocks local scripts, run the command once with
+`powershell -ExecutionPolicy Bypass -File .\scripts\dev.ps1 install-dev`, or
+follow your organization's execution-policy guidance.
+
+On systems without Make or PowerShell, run the equivalent commands manually:
 
 ```bash
 python -m pip install -r requirements-dev.txt
@@ -66,11 +88,15 @@ npm install
 make format
 ```
 
+Windows PowerShell: `./scripts/dev.ps1 format`
+
 Formats Python with Ruff/Black and frontend files with Prettier.
 
 ```bash
 make format-check
 ```
+
+Windows PowerShell: `./scripts/dev.ps1 format-check`
 
 Checks formatting without modifying files.
 
@@ -78,10 +104,18 @@ Checks formatting without modifying files.
 make lint
 ```
 
+Windows PowerShell: `./scripts/dev.ps1 lint`
+
 Runs Ruff for the Flask code and ESLint for the React code.
 
 ```bash
 make verify
+```
+
+Windows PowerShell equivalent:
+
+```powershell
+.\scripts\dev.ps1 verify
 ```
 
 Runs formatting checks, linting, backend tests, and the frontend production build. Use this before opening a pull request.
@@ -156,6 +190,11 @@ python -m unittest discover -s tests
 python -m compileall app main.py config.py tests
 cd frontend && npm run build
 ```
+
+In Windows PowerShell, use `./scripts/dev.ps1 verify`, or run the core checks
+individually with `python -m unittest discover -s tests`,
+`python -m compileall app main.py config.py tests`, and
+`Set-Location frontend; npm run build`.
 
 ## Production readiness
 
