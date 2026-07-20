@@ -1,0 +1,88 @@
+# Build the Vite client, package the application, and deploy it to an Azure App
+# Service deployment slot. Configure the variables below in Azure Pipelines (or
+# in a variable group) rather than committing environment-specific values.
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  nodeVersion: "20.19.0"
+
+stages:
+  - stage: Build
+    displayName: Build and package
+    jobs:
+      - job: BuildApplication
+        displayName: Build frontend and create deployment ZIP
+        steps:
+          - task: NodeTool@0
+            displayName: Use Node.js $(nodeVersion)
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          # The task temporarily adds credentials to frontend/.npmrc. Set
+          # NPM_FEED_SERVICE_CONNECTION only when the feed is in another
+          # organization; same-organization Azure Artifacts feeds use the
+          # pipeline's build identity.
+          - task: NpmAuthenticate@0
+            displayName: Authenticate to Azure Artifacts
+            inputs:
+              workingFile: frontend/.npmrc
+              customEndpoint: $(NPM_FEED_SERVICE_CONNECTION)
+
+          - bash: |
+              set -euo pipefail
+              cd frontend
+              if [ -f package-lock.json ]; then
+                npm ci
+              else
+                npm install
+              fi
+              npm run lint
+              npm run build
+            displayName: Install private packages and build JavaScript
+
+          - bash: |
+              set -euo pipefail
+              staging="$(Build.ArtifactStagingDirectory)/app"
+              mkdir -p "$staging/frontend"
+              cp -R app "$staging/app"
+              cp main.py config.py requirements.txt "$staging/"
+              cp -R frontend/dist "$staging/frontend/dist"
+              cd "$staging"
+              zip -r "$(Build.ArtifactStagingDirectory)/hotel-management-app.zip" .
+            displayName: Package application and compiled JavaScript
+
+          - publish: $(Build.ArtifactStagingDirectory)/hotel-management-app.zip
+            artifact: webapp-package
+            displayName: Publish deployment package
+
+  - stage: Deploy
+    displayName: Deploy to App Service slot
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: DeployWebApp
+        displayName: Deploy ZIP to deployment slot
+        environment: $(AZURE_DEVOPS_ENVIRONMENT)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: webapp-package
+
+                - task: AzureWebApp@1
+                  displayName: Deploy to Azure App Service slot
+                  inputs:
+                    azureSubscription: $(AZURE_SERVICE_CONNECTION)
+                    appType: webAppLinux
+                    appName: $(AZURE_WEBAPP_NAME)
+                    deployToSlotOrASE: true
+                    resourceGroupName: $(AZURE_RESOURCE_GROUP)
+                    slotName: $(AZURE_WEBAPP_SLOT)
+                    package: $(Pipeline.Workspace)/webapp-package/hotel-management-app.zip
