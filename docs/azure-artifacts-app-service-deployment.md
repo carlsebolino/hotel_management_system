@@ -65,6 +65,11 @@ cd frontend
 npm install @fabrikam/hotel-ui@^1.4.0
 ```
 
+Windows PowerShell uses the same npm command; change directories with
+`Set-Location frontend` before running it. The Azure pipeline intentionally
+runs on `ubuntu-latest` and targets a Linux App Service, but the local npm and
+PowerShell tooling documented in this repository work on Windows.
+
 Commit the resulting `frontend/package-lock.json`. With a lock file, the
 pipeline uses `npm ci`, which installs the exact reviewed dependency graph.
 This repository does not name a sample package in its actual `package.json`:
