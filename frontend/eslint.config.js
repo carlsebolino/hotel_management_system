@@ -23,7 +23,10 @@ export default [
       },
     },
     rules: {
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // Core ESLint does not count JSX component references as variable usage.
+      // Component names are PascalCase, so keep them from being false positives
+      // until a JSX-aware rule set is introduced.
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^[A-Z]' }],
       'no-undef': 'error',
     },
   },
