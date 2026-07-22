@@ -181,3 +181,8 @@ app.db
 frontend/node_modules/
 frontend/dist/
 frontend/.env
+
+# Frontend application source modules must remain trackable despite the
+# Python packaging `lib/` ignore rule above.
+!frontend/src/lib/
+!frontend/src/lib/**
