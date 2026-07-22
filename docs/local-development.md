@@ -115,7 +115,9 @@ In Windows PowerShell, use `Set-Location frontend`, run `npm install`, then
 return with `Set-Location ..`.
 
 `npm install` creates `frontend/node_modules/`, which is local build tooling and
-is intentionally not committed.
+is intentionally not committed. This installs Tailwind and the Vite Tailwind
+plugin locally; production builds compile the utility classes into the generated
+CSS and do not load Tailwind from a CDN.
 
 ## 5. Prepare the database
 
