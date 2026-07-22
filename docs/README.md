@@ -36,7 +36,9 @@ turning the other into a collection of special cases.
 2. [Architecture and development patterns](architecture-and-patterns.md) — learn
    the directory layout, request/data flow, API conventions, database workflow,
    and the recommended way to make a change.
-3. [Private npm packages and Azure App Service deployment](azure-artifacts-app-service-deployment.md)
+3. [Frontend layout primitives](layout-primitives.md) — compose responsive
+   dashboard pages with `Container`, `Stack`, `Grid`, and `SidebarLayout`.
+4. [Private npm packages and Azure App Service deployment](azure-artifacts-app-service-deployment.md)
    — configure Azure Artifacts, build the frontend, and deploy an App Service slot.
 
 ## Quick start
