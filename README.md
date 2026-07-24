@@ -1,4 +1,4 @@
-# Hotel Management System
+# Reference Application
 
 The application is split into independent backend and frontend layers:
 

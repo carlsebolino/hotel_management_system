@@ -12,7 +12,7 @@ def health_check():
     return jsonify(
         {
             "status": "ok",
-            "service": "hotel-management-api",
+            "service": "reference-api",
             "apiVersion": current_app.config["API_VERSION"],
         }
     )

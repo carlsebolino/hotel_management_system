@@ -176,7 +176,7 @@ Invoke-RestMethod http://localhost:5001/api/v1/health
 Expected response:
 
 ```json
-{"status":"ok","service":"hotel-management-api","apiVersion":"v1"}
+{"status":"ok","service":"reference-api","apiVersion":"v1"}
 ```
 
 ## 7. Run checks before sharing work

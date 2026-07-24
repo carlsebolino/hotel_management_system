@@ -6,7 +6,7 @@ it. Read it before adding a feature so your change follows the existing shape.
 ## Repository map
 
 ```text
-hotel_management_system/
+reference_application/
 |
 |-- frontend/                 React user interface built by Vite
 |   |-- src/main.jsx           Application entry point and page-level state
@@ -141,7 +141,7 @@ that no longer exists.
 
 Use `frontend/src/api/client.js` for backend requests. It adds JSON headers,
 parses JSON, and converts non-success responses into JavaScript errors. Add a
-small exported function such as `fetchReservations()` rather than calling
+small exported function such as `fetchProjects()` rather than calling
 `fetch()` directly from a component. This gives the application one place to
 handle API URL and error behavior consistently.
 

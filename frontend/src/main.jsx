@@ -5,16 +5,16 @@ import { UsersTable } from './components/UsersTable';
 import { Container, Grid, SidebarLayout, Stack } from './components/layouts';
 import './styles.css';
 
-const arrivals = [
-  { label: 'Arrivals today', value: '24', detail: '8 checked in', tone: 'bg-sky-50 text-sky-700' },
+const summaryCards = [
+  { label: 'Tasks today', value: '24', detail: '8 completed', tone: 'bg-sky-50 text-sky-700' },
   {
-    label: 'Occupancy',
+    label: 'Progress',
     value: '86%',
-    detail: '12 rooms remaining',
+    detail: '12 items remaining',
     tone: 'bg-violet-50 text-violet-700',
   },
   {
-    label: 'Guest requests',
+    label: 'Open requests',
     value: '7',
     detail: '2 need attention',
     tone: 'bg-amber-50 text-amber-700',
@@ -61,7 +61,7 @@ function App() {
                 Layout primitives
               </p>
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Hotel operations dashboard
+                Reference application dashboard
               </h1>
               <p className="mt-3 max-w-2xl text-slate-300">
                 A responsive Tailwind demonstration built from reusable Container, Stack, Grid, and
@@ -69,12 +69,12 @@ function App() {
               </p>
             </div>
             <button className="rounded-xl bg-sky-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-sky-300">
-              New reservation
+              New item
             </button>
           </header>
 
           <Grid columns={3}>
-            {arrivals.map((item) => (
+            {summaryCards.map((item) => (
               <section
                 key={item.label}
                 className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
@@ -99,7 +99,7 @@ function App() {
                 <p className="px-3 pb-2 pt-1 text-xs font-bold uppercase tracking-wider text-slate-400">
                   Workspace
                 </p>
-                {['Overview', 'Reservations', 'Rooms', 'Guests'].map((item, index) => (
+                {['Overview', 'Projects', 'Tasks', 'Team'].map((item, index) => (
                   <a
                     key={item}
                     className={`mb-1 block rounded-xl px-3 py-2.5 text-sm font-semibold ${index === 0 ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}

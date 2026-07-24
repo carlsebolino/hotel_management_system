@@ -17,7 +17,7 @@ class ApiTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.get_json(),
-            {"apiVersion": "v1", "service": "hotel-management-api", "status": "ok"},
+            {"apiVersion": "v1", "service": "reference-api", "status": "ok"},
         )
 
     def test_users_returns_json_collection(self):
@@ -83,8 +83,8 @@ class FrontendServingTestCase(unittest.TestCase):
         self.temp_dir = TemporaryDirectory()
         frontend_dist = Path(self.temp_dir.name)
         (frontend_dist / "assets").mkdir()
-        (frontend_dist / "index.html").write_text('<div id="root">Hotel UI</div>')
-        (frontend_dist / "assets" / "app.js").write_text("console.log('hotel')")
+        (frontend_dist / "index.html").write_text('<div id="root">Reference UI</div>')
+        (frontend_dist / "assets" / "app.js").write_text("console.log('reference-app')")
 
         class FrontendTestingConfig(TestingConfig):
             FRONTEND_DIST_DIR = str(frontend_dist)
@@ -99,7 +99,7 @@ class FrontendServingTestCase(unittest.TestCase):
         response = self.client.get("/")
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Hotel UI", response.data)
+        self.assertIn(b"Reference UI", response.data)
         response.close()
 
     def test_serves_compiled_frontend_assets(self):
@@ -110,10 +110,10 @@ class FrontendServingTestCase(unittest.TestCase):
         response.close()
 
     def test_frontend_routes_fall_back_to_index(self):
-        response = self.client.get("/reservations/123")
+        response = self.client.get("/projects/123")
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Hotel UI", response.data)
+        self.assertIn(b"Reference UI", response.data)
         response.close()
 
     def test_unknown_api_routes_remain_json_not_found_responses(self):

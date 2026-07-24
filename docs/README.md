@@ -1,6 +1,6 @@
 # Developer onboarding guide
 
-Welcome to the Hotel Management System. This guide is written for a developer
+Welcome to the Reference Application. This guide is written for a developer
 who is new to the project, Flask, React, or the split frontend/backend setup.
 It explains what to install, how to run the application, and where to look when
 you need to make a change.
