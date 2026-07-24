@@ -16,10 +16,10 @@ Record these values:
 | Value | Example |
 | --- | --- |
 | Organization | `fabrikam` |
-| Project (project-scoped feeds only) | `hotel-platform` |
+| Project (project-scoped feeds only) | `reference-platform` |
 | Feed | `shared-ui` |
 | Package scope | `@fabrikam` |
-| Package name and version | `@fabrikam/hotel-ui@^1.4.0` |
+| Package name and version | `@fabrikam/reference-ui@^1.4.0` |
 
 `frontend/.npmrc` is intentionally a template. Replace
 `YOUR_NPM_SCOPE`, `YOUR_AZURE_DEVOPS_ORGANIZATION`, and
@@ -35,7 +35,7 @@ project-scoped, comment out that line and activate the second template, replacin
 the project segment between the organization and `_packaging`:
 
 ```ini
-@fabrikam:registry=https://pkgs.dev.azure.com/fabrikam/hotel-platform/_packaging/shared-ui/npm/registry/
+@fabrikam:registry=https://pkgs.dev.azure.com/fabrikam/reference-platform/_packaging/shared-ui/npm/registry/
 ```
 
 For a developer machine, Azure DevOps provides the feed's **Connect to feed**
@@ -52,7 +52,7 @@ when the browser bundle imports it):
 ```json
 {
   "dependencies": {
-    "@fabrikam/hotel-ui": "^1.4.0"
+    "@fabrikam/reference-ui": "^1.4.0"
   }
 }
 ```
@@ -62,7 +62,7 @@ file once `frontend/.npmrc` is configured:
 
 ```bash
 cd frontend
-npm install @fabrikam/hotel-ui@^1.4.0
+npm install @fabrikam/reference-ui@^1.4.0
 ```
 
 Windows PowerShell uses the same npm command; change directories with
@@ -108,7 +108,7 @@ pipeline YAML free of credentials.
    and are not included in the published artifact.
 3. Installs dependencies, runs ESLint, and executes `npm run build`. Vite emits
    compiled JavaScript, CSS, and assets in `frontend/dist`.
-4. Creates `hotel-management-app.zip` containing the Flask app, Python startup
+4. Creates `reference-application.zip` containing the Flask app, Python startup
    files, requirements, and `frontend/dist`. The Flask application serves the
    compiled assets and returns `index.html` for non-API SPA routes.
 5. Publishes that ZIP and uses `AzureWebApp@1` to deploy it to the configured

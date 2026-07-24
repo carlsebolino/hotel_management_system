@@ -32,7 +32,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JSON_SORT_KEYS = False
 
-    API_TITLE = os.environ.get("API_TITLE", "Hotel Management API")
+    API_TITLE = os.environ.get("API_TITLE", "Reference API")
     API_VERSION = os.environ.get("API_VERSION", "v1")
     CORS_ORIGINS = _csv("CORS_ORIGINS", "http://localhost:5173")
     CORS_MAX_AGE = int(os.environ.get("CORS_MAX_AGE", "600"))

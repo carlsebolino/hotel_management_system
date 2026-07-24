@@ -54,10 +54,10 @@ stages:
               cp main.py config.py requirements.txt "$staging/"
               cp -R frontend/dist "$staging/frontend/dist"
               cd "$staging"
-              zip -r "$(Build.ArtifactStagingDirectory)/hotel-management-app.zip" .
+              zip -r "$(Build.ArtifactStagingDirectory)/reference-application.zip" .
             displayName: Package application and compiled JavaScript
 
-          - publish: $(Build.ArtifactStagingDirectory)/hotel-management-app.zip
+          - publish: $(Build.ArtifactStagingDirectory)/reference-application.zip
             artifact: webapp-package
             displayName: Publish deployment package
 
@@ -85,4 +85,4 @@ stages:
                     deployToSlotOrASE: true
                     resourceGroupName: $(AZURE_RESOURCE_GROUP)
                     slotName: $(AZURE_WEBAPP_SLOT)
-                    package: $(Pipeline.Workspace)/webapp-package/hotel-management-app.zip
+                    package: $(Pipeline.Workspace)/webapp-package/reference-application.zip

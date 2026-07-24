@@ -1,7 +1,7 @@
 # React concepts used in this project
 
 This guide explains the React concepts currently used by the frontend and
-shows small examples based on the hotel dashboard. It is a companion to the
+shows small examples based on the reference dashboard. It is a companion to the
 [frontend layout primitives](layout-primitives.md) guide: read that guide when
 you need to choose `Container`, `Stack`, `Grid`, or `SidebarLayout`.
 
@@ -41,8 +41,8 @@ needs it. The dashboard's `App` component composes the page, while
 export function WelcomePanel() {
   return (
     <section className="rounded-2xl bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold">Welcome to hotel operations</h2>
-      <p className="mt-1 text-slate-500">Review arrivals and guest requests.</p>
+      <h2 className="text-lg font-semibold">Welcome to the reference workspace</h2>
+      <p className="mt-1 text-slate-500">Review upcoming work and open requests.</p>
     </section>
   );
 }
@@ -76,8 +76,8 @@ export function Section({ children, title, tone = "slate" }) {
 
 function Dashboard() {
   return (
-    <Section title="Arrivals" tone="sky">
-      <p>24 guests arrive today.</p>
+    <Section title="Tasks" tone="sky">
+      <p>24 items are scheduled today.</p>
     </Section>
   );
 }
@@ -114,7 +114,7 @@ function RequestCount() {
 
   return (
     <button type="button" onClick={() => setCount((current) => current + 1)}>
-      Guest requests: {count}
+      Open requests: {count}
     </button>
   );
 }
@@ -207,12 +207,12 @@ the corresponding DOM element when the list changes. The user table uses the
 unique email address, and the dashboard summary cards use their labels.
 
 ```jsx
-function ReservationsList({ reservations }) {
+function ProjectList({ projects }) {
   return (
     <ul>
-      {reservations.map((reservation) => (
-        <li key={reservation.id}>
-          {reservation.guestName} — room {reservation.roomNumber}
+      {projects.map((project) => (
+        <li key={project.id}>
+          {project.ownerName} — item {project.itemId}
         </li>
       ))}
     </ul>

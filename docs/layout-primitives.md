@@ -29,7 +29,7 @@ horizontal padding. Use it once near the top of a screen.
 
 ```jsx
 <Container size="lg" className="py-8 sm:py-12">
-  <h1 className="text-3xl font-bold">Reservations</h1>
+  <h1 className="text-3xl font-bold">Projects</h1>
 </Container>
 ```
 
@@ -62,8 +62,8 @@ base gap of `gap-4`, which increases to `gap-6` at the `md` breakpoint.
 
 ```jsx
 <Grid columns={3}>
-  <article className="rounded-2xl bg-white p-5 shadow-sm">Arrivals</article>
-  <article className="rounded-2xl bg-white p-5 shadow-sm">Occupancy</article>
+  <article className="rounded-2xl bg-white p-5 shadow-sm">Tasks</article>
+  <article className="rounded-2xl bg-white p-5 shadow-sm">Progress</article>
   <article className="rounded-2xl bg-white p-5 shadow-sm">Requests</article>
 </Grid>
 ```
@@ -86,7 +86,7 @@ screens.
 <SidebarLayout
   sidebar={
     <nav
-      aria-label="Reservations filters"
+      aria-label="Project filters"
       className="rounded-2xl bg-white p-4 shadow-sm"
     >
       {/* Filter controls or navigation links */}
@@ -113,9 +113,9 @@ use `SidebarLayout` when a screen has contextual navigation or controls.
     </header>
 
     <Grid columns={3}>
-      <article className="rounded-2xl bg-white p-5 shadow-sm">Arrivals</article>
+      <article className="rounded-2xl bg-white p-5 shadow-sm">Tasks</article>
       <article className="rounded-2xl bg-white p-5 shadow-sm">
-        Occupancy
+        Progress
       </article>
       <article className="rounded-2xl bg-white p-5 shadow-sm">Requests</article>
     </Grid>
