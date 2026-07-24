@@ -38,7 +38,10 @@ turning the other into a collection of special cases.
    and the recommended way to make a change.
 3. [Frontend layout primitives](layout-primitives.md) — compose responsive
    dashboard pages with `Container`, `Stack`, `Grid`, and `SidebarLayout`.
-4. [Private npm packages and Azure App Service deployment](azure-artifacts-app-service-deployment.md)
+4. [React concepts used in this project](react-concepts.md) — understand the
+   components, props, state, Effects, lists, conditional rendering, events, and
+   accessibility patterns in the current frontend.
+5. [Private npm packages and Azure App Service deployment](azure-artifacts-app-service-deployment.md)
    — configure Azure Artifacts, build the frontend, and deploy an App Service slot.
 
 ## Quick start
