@@ -1,4 +1,10 @@
-export function UsersTable({ users }) {
+import type { User } from '../api/client';
+
+interface UsersTableProps {
+  users: User[];
+}
+
+export function UsersTable({ users }: UsersTableProps) {
   if (users.length === 0) {
     return <p className="empty-state">No users are available yet.</p>;
   }

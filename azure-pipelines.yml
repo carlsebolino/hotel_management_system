@@ -44,7 +44,7 @@ stages:
               fi
               npm run lint
               npm run build
-            displayName: Install private packages and build JavaScript
+            displayName: Install private packages and build TypeScript
 
           - bash: |
               set -euo pipefail
@@ -55,7 +55,7 @@ stages:
               cp -R frontend/dist "$staging/frontend/dist"
               cd "$staging"
               zip -r "$(Build.ArtifactStagingDirectory)/reference-application.zip" .
-            displayName: Package application and compiled JavaScript
+            displayName: Package application and compiled frontend assets
 
           - publish: $(Build.ArtifactStagingDirectory)/reference-application.zip
             artifact: webapp-package

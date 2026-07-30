@@ -1,33 +1,30 @@
-const browserGlobals = {
-  AbortController: 'readonly',
-  document: 'readonly',
-  fetch: 'readonly',
-  import: 'readonly',
-  React: 'readonly',
-};
+import js from '@eslint/js';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import tseslint from 'typescript-eslint';
 
-export default [
+export default tseslint.config(
+  { ignores: ['dist/**', 'node_modules/**'] },
+  js.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
   {
-    ignores: ['dist/**', 'node_modules/**'],
-  },
-  {
-    files: ['src/**/*.{js,jsx}'],
+    files: ['src/**/*.{ts,tsx}'],
+    extends: [reactHooks.configs['recommended-latest'], reactRefresh.configs.vite],
     languageOptions: {
-      ecmaVersion: 'latest',
-      globals: browserGlobals,
       parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
-        sourceType: 'module',
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
-    rules: {
-      // Core ESLint does not count JSX component references as variable usage.
-      // Component names are PascalCase, so keep them from being false positives
-      // until a JSX-aware rule set is introduced.
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^[A-Z]' }],
-      'no-undef': 'error',
+  },
+  {
+    files: ['vite.config.ts'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
   },
-];
+);

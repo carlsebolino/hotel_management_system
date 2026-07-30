@@ -9,8 +9,8 @@ it. Read it before adding a feature so your change follows the existing shape.
 reference_application/
 |
 |-- frontend/                 React user interface built by Vite
-|   |-- src/main.jsx           Application entry point and page-level state
-|   |-- src/api/client.js      Shared HTTP client for Flask API calls
+|   |-- src/main.tsx           Application entry point and page-level state
+|   |-- src/api/client.ts      Shared HTTP client for Flask API calls
 |   `-- src/components/        Reusable presentational React components
 |
 |-- app/                      Flask application package
@@ -32,9 +32,9 @@ reference_application/
 When the Users screen first appears, this is the path a request takes:
 
 ```text
-1. React renders App in frontend/src/main.jsx
+1. React renders App in frontend/src/main.tsx
 2. useEffect calls fetchUsers()
-3. frontend/src/api/client.js sends GET /users to VITE_API_BASE_URL
+3. frontend/src/api/client.ts sends GET /users to VITE_API_BASE_URL
 4. Flask matches GET /api/v1/users in app/api/v1/routes.py
 5. The route calls services.users.list_users()
 6. The service returns data for the route to serialize as JSON
@@ -132,15 +132,15 @@ the policy itself must change.
 
 ### Page state in the entry component
 
-`frontend/src/main.jsx` owns the Users screen's loading state, data state, and
+`frontend/src/main.tsx` owns the Users screen's loading state, data state, and
 error status. It starts data loading in `useEffect` and aborts the request if the
 component is removed. This prevents a stale request from updating a component
 that no longer exists.
 
 ### One shared API boundary
 
-Use `frontend/src/api/client.js` for backend requests. It adds JSON headers,
-parses JSON, and converts non-success responses into JavaScript errors. Add a
+Use `frontend/src/api/client.ts` for backend requests. It adds JSON headers,
+parses JSON, and converts non-success responses into typed errors. Add a
 small exported function such as `fetchProjects()` rather than calling
 `fetch()` directly from a component. This gives the application one place to
 handle API URL and error behavior consistently.
@@ -161,8 +161,8 @@ For a new API-backed screen, work from the inside out:
    migration only if persistent storage is needed.
 3. Add a thin versioned route in `app/api/v1/routes.py` that calls the service.
 4. Add backend tests in `tests/` for success, invalid input, and relevant errors.
-5. Add an API-client function in `frontend/src/api/client.js`.
-6. Add page state in `main.jsx` or a new component, then pass data to a
+5. Add an API-client function in `frontend/src/api/client.ts`.
+6. Add page state in `main.tsx` or a new component, then pass data to a
    presentational component.
 7. Run `make format` and `make verify`.
 
@@ -180,7 +180,7 @@ For a new API-backed screen, work from the inside out:
 ## Quality rules
 
 - Python is formatted by Ruff and Black with an 88-character line length.
-- JavaScript and JSX are formatted by Prettier; ESLint checks frontend code.
+- TypeScript and TSX are formatted by Prettier; ESLint checks frontend code.
 - Backend tests use the standard-library `unittest` runner.
 - Do not commit `.env`, `frontend/.env`, `.venv`, `frontend/node_modules`,
   frontend build output, or the local `app.db` database.

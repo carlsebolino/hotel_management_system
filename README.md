@@ -41,6 +41,8 @@ The backend allows browser requests from `CORS_ORIGINS`, a comma-separated envir
 
 ## Frontend
 
+The frontend is written in strict TypeScript and TSX. Vite compiles the application, while `npm run typecheck` runs the TypeScript compiler without emitting files. New frontend source files should use `.ts` or `.tsx` extensions.
+
 ```bash
 cd frontend
 npm install
@@ -120,7 +122,7 @@ Windows PowerShell equivalent:
 
 Runs formatting checks, linting, backend tests, and the frontend production build. Use this before opening a pull request.
 
-The formatting rules live in `pyproject.toml`, `frontend/.prettierrc.json`, and `.editorconfig`; frontend linting rules live in `frontend/eslint.config.js`.
+The formatting rules live in `pyproject.toml`, `frontend/.prettierrc.json`, and `.editorconfig`; frontend TypeScript settings live in `frontend/tsconfig.json`, and linting rules live in `frontend/eslint.config.js`.
 
 ## Flask CLI and database migrations
 

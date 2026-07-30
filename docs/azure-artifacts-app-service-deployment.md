@@ -1,7 +1,7 @@
 # Private npm packages and Azure App Service deployment
 
 This guide shows how to consume a private npm package stored in **Azure
-Artifacts**, build the React/Vite JavaScript, and deploy the packaged
+Artifacts**, build the React/Vite TypeScript, and deploy the packaged
 application to an Azure App Service deployment slot through Azure Pipelines.
 
 ## 1. Publish or identify the Azure Artifacts package
@@ -107,7 +107,7 @@ pipeline YAML free of credentials.
 2. Runs `NpmAuthenticate` against `frontend/.npmrc`; credentials are temporary
    and are not included in the published artifact.
 3. Installs dependencies, runs ESLint, and executes `npm run build`. Vite emits
-   compiled JavaScript, CSS, and assets in `frontend/dist`.
+   compiled frontend assets, CSS, and assets in `frontend/dist`.
 4. Creates `reference-application.zip` containing the Flask app, Python startup
    files, requirements, and `frontend/dist`. The Flask application serves the
    compiled assets and returns `index.html` for non-API SPA routes.
