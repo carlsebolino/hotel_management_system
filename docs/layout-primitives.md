@@ -25,11 +25,22 @@ horizontal padding. Use it once near the top of a screen.
 | Prop        | Values                   | Default | Effect                                                                               |
 | ----------- | ------------------------ | ------- | ------------------------------------------------------------------------------------ |
 | `size`      | `md`, `lg`, `xl`, `full` | `xl`    | Selects a maximum width: `max-w-5xl`, `max-w-6xl`, `max-w-7xl`, or no maximum width. |
+| `fluid`     | `true`, `false`          | `false` | Like Bootstrap's `.container-fluid`, spans the viewport while retaining gutters.     |
 | `className` | Tailwind class string    | —       | Adds classes to the outer container.                                                 |
 
 ```jsx
 <Container size="lg" className="py-8 sm:py-12">
   <h1 className="text-3xl font-bold">Projects</h1>
+</Container>
+```
+
+Use `fluid` for full-width application shells, data-heavy screens, or bands that
+should grow at every viewport size. The container still supplies responsive
+horizontal padding, unlike an unstyled full-width element:
+
+```jsx
+<Container fluid>
+  <Grid columns={4}>{/* Content can use all available width */}</Grid>
 </Container>
 ```
 
@@ -114,9 +125,7 @@ use `SidebarLayout` when a screen has contextual navigation or controls.
 
     <Grid columns={3}>
       <article className="rounded-2xl bg-white p-5 shadow-sm">Tasks</article>
-      <article className="rounded-2xl bg-white p-5 shadow-sm">
-        Progress
-      </article>
+      <article className="rounded-2xl bg-white p-5 shadow-sm">Progress</article>
       <article className="rounded-2xl bg-white p-5 shadow-sm">Requests</article>
     </Grid>
 
