@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { fetchUsers } from './api/client';
+import { LayoutExamples } from './components/LayoutExamples';
 import { UsersTable } from './components/UsersTable';
 import { Container, Grid, SidebarLayout, Stack } from './components/layouts';
 import './styles.css';
@@ -53,43 +54,49 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 sm:py-12">
-      <Container>
-        <Stack gap="lg">
-          <header className="flex flex-col justify-between gap-5 rounded-3xl bg-slate-900 px-6 py-8 text-white shadow-xl shadow-slate-300 sm:flex-row sm:items-end sm:px-9">
-            <div>
-              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-sky-300">
-                Layout primitives
-              </p>
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Reference application dashboard
-              </h1>
-              <p className="mt-3 max-w-2xl text-slate-300">
-                A responsive Tailwind demonstration built from reusable Container, Stack, Grid, and
-                SidebarLayout components.
-              </p>
-            </div>
-            <button className="rounded-xl bg-sky-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-sky-300">
-              New item
-            </button>
-          </header>
+      <Stack gap="lg">
+        <Container>
+          <Stack gap="lg">
+            <header className="flex flex-col justify-between gap-5 rounded-3xl bg-slate-900 px-6 py-8 text-white shadow-xl shadow-slate-300 sm:flex-row sm:items-end sm:px-9">
+              <div>
+                <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-sky-300">
+                  Layout primitives
+                </p>
+                <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                  Reference application dashboard
+                </h1>
+                <p className="mt-3 max-w-2xl text-slate-300">
+                  A responsive Tailwind demonstration built from reusable Container, Stack, Grid,
+                  and SidebarLayout components.
+                </p>
+              </div>
+              <button className="rounded-xl bg-sky-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-sky-300">
+                New item
+              </button>
+            </header>
 
-          <Grid columns={3}>
-            {summaryCards.map((item) => (
-              <section
-                key={item.label}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-              >
-                <p className="text-sm font-medium text-slate-500">{item.label}</p>
-                <div className="mt-4 flex items-end justify-between gap-3">
-                  <strong className="text-3xl tracking-tight text-slate-900">{item.value}</strong>
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${item.tone}`}>
-                    {item.detail}
-                  </span>
-                </div>
-              </section>
-            ))}
-          </Grid>
+            <Grid columns={3}>
+              {summaryCards.map((item) => (
+                <section
+                  key={item.label}
+                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                >
+                  <p className="text-sm font-medium text-slate-500">{item.label}</p>
+                  <div className="mt-4 flex items-end justify-between gap-3">
+                    <strong className="text-3xl tracking-tight text-slate-900">{item.value}</strong>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${item.tone}`}>
+                      {item.detail}
+                    </span>
+                  </div>
+                </section>
+              ))}
+            </Grid>
+          </Stack>
+        </Container>
 
+        <LayoutExamples />
+
+        <Container>
           <SidebarLayout
             sidebar={
               <nav
@@ -143,8 +150,8 @@ function App() {
               </p>
             </Stack>
           </SidebarLayout>
-        </Stack>
-      </Container>
+        </Container>
+      </Stack>
     </div>
   );
 }

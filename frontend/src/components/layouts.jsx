@@ -21,10 +21,16 @@ const gridColumns = {
   4: 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4',
 };
 
-/** Centers page content and supplies responsive horizontal gutters. */
-export function Container({ children, className, size = 'xl' }) {
+/** Constrains page content, or spans the viewport when fluid, with responsive gutters. */
+export function Container({ children, className, fluid = false, size = 'xl' }) {
   return (
-    <div className={cn('mx-auto w-full px-4 sm:px-6 lg:px-8', containerSizes[size], className)}>
+    <div
+      className={cn(
+        'w-full px-4 sm:px-6 lg:px-8',
+        fluid ? 'max-w-none' : cn('mx-auto', containerSizes[size]),
+        className,
+      )}
+    >
       {children}
     </div>
   );
