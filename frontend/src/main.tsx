@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { fetchUsers } from './api/client';
+import type { User } from './api/client';
 import { LayoutExamples } from './components/LayoutExamples';
 import { UsersTable } from './components/UsersTable';
 import { Container, Grid, SidebarLayout, Stack } from './components/layouts';
@@ -23,7 +24,7 @@ const summaryCards = [
 ];
 
 function App() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [status, setStatus] = useState('Loading API data...');
   const [isLoading, setIsLoading] = useState(true);
   const [hasApiError, setHasApiError] = useState(false);
@@ -38,7 +39,7 @@ function App() {
         setHasApiError(false);
       })
       .catch((error) => {
-        if (error.name !== 'AbortError') {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
           setStatus('API unavailable');
           setHasApiError(true);
         }
@@ -156,7 +157,13 @@ function App() {
   );
 }
 
-createRoot(document.getElementById('root')).render(
+const rootElement = document.getElementById('root');
+
+if (!rootElement) {
+  throw new Error('Root element was not found.');
+}
+
+createRoot(rootElement).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,

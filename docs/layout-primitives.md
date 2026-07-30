@@ -1,13 +1,13 @@
 # Frontend layout primitives
 
 The React frontend includes four small, reusable layout components in
-`frontend/src/components/layouts.jsx`. They provide the responsive structure for
+`frontend/src/components/layouts.tsx`. They provide the responsive structure for
 dashboard screens while leaving each screen in control of its content and
 Tailwind styling.
 
 Import the components you need from the module:
 
-```jsx
+```tsx
 import { Container, Grid, SidebarLayout, Stack } from "./components/layouts";
 ```
 
@@ -28,7 +28,7 @@ horizontal padding. Use it once near the top of a screen.
 | `fluid`     | `true`, `false`          | `false` | Like Bootstrap's `.container-fluid`, spans the viewport while retaining gutters.     |
 | `className` | Tailwind class string    | —       | Adds classes to the outer container.                                                 |
 
-```jsx
+```tsx
 <Container size="lg" className="py-8 sm:py-12">
   <h1 className="text-3xl font-bold">Projects</h1>
 </Container>
@@ -38,7 +38,7 @@ Use `fluid` for full-width application shells, data-heavy screens, or bands that
 should grow at every viewport size. The container still supplies responsive
 horizontal padding, unlike an unstyled full-width element:
 
-```jsx
+```tsx
 <Container fluid>
   <Grid columns={4}>{/* Content can use all available width */}</Grid>
 </Container>
@@ -54,7 +54,7 @@ page's main sections, a card's content, or a group of form fields.
 | `gap`       | `sm`, `md`, `lg`, `xl` | `md`    | Selects `gap-3`, `gap-5`, `gap-8`, or `gap-12`. |
 | `className` | Tailwind class string  | —       | Adds classes to the outer flex column.          |
 
-```jsx
+```tsx
 <Stack gap="lg">
   <header>{/* Page title and actions */}</header>
   <section>{/* Main content */}</section>
@@ -71,7 +71,7 @@ base gap of `gap-4`, which increases to `gap-6` at the `md` breakpoint.
 | `columns`   | `1`, `2`, `3`, `4`    | `1`     | `1`: one column; `2`: two columns at `md`; `3`: two at `md`, three at `xl`; `4`: two at `sm`, four at `xl`. |
 | `className` | Tailwind class string | —       | Adds classes to the outer grid.                                                                             |
 
-```jsx
+```tsx
 <Grid columns={3}>
   <article className="rounded-2xl bg-white p-5 shadow-sm">Tasks</article>
   <article className="rounded-2xl bg-white p-5 shadow-sm">Progress</article>
@@ -89,11 +89,11 @@ screens.
 
 | Prop        | Required | Description                                                         |
 | ----------- | -------- | ------------------------------------------------------------------- |
-| `sidebar`   | Yes      | JSX rendered inside the layout's `<aside>` element.                 |
+| `sidebar`   | Yes      | TSX rendered inside the layout's `<aside>` element.                 |
 | `children`  | Yes      | Primary page content rendered inside the layout's `<main>` element. |
 | `className` | No       | Adds classes to the outer grid.                                     |
 
-```jsx
+```tsx
 <SidebarLayout
   sidebar={
     <nav
@@ -116,7 +116,7 @@ Compose the primitives from the outside in: constrain the page with
 `Container`, arrange sections with `Stack`, use `Grid` for related cards, and
 use `SidebarLayout` when a screen has contextual navigation or controls.
 
-```jsx
+```tsx
 <Container>
   <Stack gap="lg">
     <header className="rounded-3xl bg-slate-900 p-8 text-white">
@@ -140,16 +140,16 @@ use `SidebarLayout` when a screen has contextual navigation or controls.
 </Container>
 ```
 
-The existing dashboard in `frontend/src/main.jsx` is a working reference that
+The existing dashboard in `frontend/src/main.tsx` is a working reference that
 uses all four primitives together.
 
 ## `cn` class-name helper
 
-The primitives use `cn` from `frontend/src/lib/cn.js` to combine their base
+The primitives use `cn` from `frontend/src/lib/cn.ts` to combine their base
 classes with an optional `className`. It removes falsey values and joins the
 remaining class strings with spaces:
 
-```js
+```ts
 import { cn } from "./lib/cn";
 
 const statusClass = cn(

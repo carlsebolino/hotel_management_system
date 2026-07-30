@@ -1,24 +1,29 @@
-# React concepts used in this project
+# React and TypeScript concepts used in this project
+
+All frontend application code uses strict TypeScript. Define interfaces for component props and API payloads, use `import type` for type-only imports, and use `.tsx` only for files that render JSX. Run `npm run typecheck` after changing frontend types.
 
 This guide explains the React concepts currently used by the frontend and
 shows small examples based on the reference dashboard. It is a companion to the
 [frontend layout primitives](layout-primitives.md) guide: read that guide when
 you need to choose `Container`, `Stack`, `Grid`, or `SidebarLayout`.
 
-The examples use JSX, the syntax used by the files in `frontend/src/`. JSX lets
-components describe the UI they render. JavaScript expressions appear inside
+The examples use TSX, the TypeScript syntax used by the files in `frontend/src/`. TSX lets
+components describe the UI they render. TypeScript expressions appear inside
 curly braces, and component names start with a capital letter.
 
 ## Application entry point and strict mode
 
-`frontend/src/main.jsx` mounts the application with `createRoot`. The element
+`frontend/src/main.tsx` mounts the application with `createRoot`. The element
 with the `root` ID is supplied by `frontend/index.html`.
 
-```jsx
+```tsx
 import React from "react";
 import { createRoot } from "react-dom/client";
 
-createRoot(document.getElementById("root")).render(
+const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error("Root element was not found.");
+
+createRoot(rootElement).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
@@ -30,14 +35,14 @@ run an Effect's setup, cleanup, and setup sequence again. Write Effects with a
 cleanup function so this is safe; do not rely on an Effect running only once in
 development.
 
-## Function components and JSX
+## Function components and TSX
 
-A function component is a JavaScript function that returns JSX. Keep a
+A function component is a typed function that returns TSX. Keep a
 component focused on one UI responsibility and export it when another module
 needs it. The dashboard's `App` component composes the page, while
 `UsersTable` owns table rendering.
 
-```jsx
+```tsx
 export function WelcomePanel() {
   return (
     <section className="rounded-2xl bg-white p-6 shadow-sm">
@@ -48,7 +53,7 @@ export function WelcomePanel() {
 }
 ```
 
-Use `className`, rather than HTML's `class`, for CSS classes in JSX. JSX also
+Use `className`, rather than HTML's `class`, for CSS classes in TSX. TSX also
 uses camel-cased DOM properties where applicable, such as `tabIndex`. Standard
 ARIA attributes retain their hyphenated names, such as `aria-label` and
 `aria-busy`.
@@ -56,16 +61,24 @@ ARIA attributes retain their hyphenated names, such as `aria-label` and
 ## Props, `children`, and defaults
 
 Props pass data from a parent to a component. Treat them as read-only. The
-layout primitives accept `children`, which is the JSX nested between a
+layout primitives accept `children`, which is the TSX nested between a
 component's opening and closing tags, plus configuration props with defaults.
 
-```jsx
+```tsx
+import type { ReactNode } from "react";
+
 const sectionTones = {
   slate: "bg-slate-50",
   sky: "bg-sky-50",
-};
+} as const;
 
-export function Section({ children, title, tone = "slate" }) {
+interface SectionProps {
+  children: ReactNode;
+  title: string;
+  tone?: keyof typeof sectionTones;
+}
+
+export function Section({ children, title, tone = "slate" }: SectionProps) {
   return (
     <section className={`rounded-2xl p-6 ${sectionTones[tone]}`}>
       <h2 className="font-semibold">{title}</h2>
@@ -88,7 +101,7 @@ When a class varies, choose from complete strings (as the dashboard does with
 its `tone` values) instead of constructing utility names dynamically. For
 example:
 
-```jsx
+```tsx
 const tones = {
   sky: "bg-sky-50 text-sky-700",
   rose: "bg-rose-50 text-rose-700",
@@ -106,7 +119,7 @@ returns the current value and a setter. Calling the setter asks React to render
 again with the new value. The dashboard keeps its users, request status,
 loading state, and API-error state independently.
 
-```jsx
+```tsx
 import { useState } from "react";
 
 function RequestCount() {
@@ -124,7 +137,7 @@ Use the functional setter form, `setCount((current) => current + 1)`, when the
 next value depends on the previous value. Do not mutate arrays or objects held
 in state; create a replacement instead.
 
-```jsx
+```tsx
 setUsers((currentUsers) => [...currentUsers, newUser]);
 ```
 
@@ -136,14 +149,15 @@ loads users when `App` mounts. It also creates an `AbortController` and aborts
 the request during cleanup. This prevents an obsolete request from updating UI
 after the component has unmounted.
 
-```jsx
+```tsx
 import { useEffect, useState } from "react";
 import { fetchUsers } from "./api/client";
+import type { User } from "./api/client";
 
 function TeamDirectory() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -151,7 +165,9 @@ function TeamDirectory() {
     fetchUsers({ signal: controller.signal })
       .then(setUsers)
       .catch((requestError) => {
-        if (requestError.name !== "AbortError") setError(requestError);
+        if (requestError instanceof Error && requestError.name !== "AbortError") {
+          setError(requestError);
+        }
       })
       .finally(() => {
         if (!controller.signal.aborted) setIsLoading(false);
@@ -177,11 +193,11 @@ functions there rather than scattering `fetch` calls through screens.
 
 ## Conditional rendering
 
-React uses ordinary JavaScript to decide what JSX to render. The dashboard
+React uses TypeScript expressions to decide what TSX to render. The dashboard
 shows loading text until data is ready, then shows `UsersTable`; it also picks
 a success or error status style based on `hasApiError`.
 
-```jsx
+```tsx
 <div aria-busy={isLoading}>
   {isLoading ? <p>Loading users...</p> : <UsersTable users={users} />}
 </div>
@@ -189,8 +205,8 @@ a success or error status style based on `hasApiError`.
 
 For a simple optional element, use `&&`:
 
-```jsx
-function ApiNotice({ hasApiError }) {
+```tsx
+function ApiNotice({ hasApiError }: { hasApiError: boolean }) {
   return <>{hasApiError && <p role="alert">The API is unavailable.</p>}</>;
 }
 ```
@@ -206,8 +222,14 @@ list needs a stable, unique `key` so React can correctly preserve or replace
 the corresponding DOM element when the list changes. The user table uses the
 unique email address, and the dashboard summary cards use their labels.
 
-```jsx
-function ProjectList({ projects }) {
+```tsx
+interface Project {
+  id: string;
+  ownerName: string;
+  itemId: string;
+}
+
+function ProjectList({ projects }: { projects: Project[] }) {
   return (
     <ul>
       {projects.map((project) => (
@@ -230,8 +252,13 @@ function while rendering. Use semantic HTML first, then add ARIA only when it
 communicates information that HTML alone does not. The dashboard uses
 `role="status"` for connection feedback and `aria-busy` while the table loads.
 
-```jsx
-function RefreshButton({ onRefresh, isLoading }) {
+```tsx
+interface RefreshButtonProps {
+  onRefresh: () => void;
+  isLoading: boolean;
+}
+
+function RefreshButton({ onRefresh, isLoading }: RefreshButtonProps) {
   return (
     <button type="button" disabled={isLoading} onClick={onRefresh}>
       {isLoading ? "Refreshing…" : "Refresh users"}
@@ -249,11 +276,11 @@ already clear.
 
 | Concept                                                               | Current project reference                |
 | --------------------------------------------------------------------- | ---------------------------------------- |
-| Root render, strict mode, state, Effect, conditional UI, mapped cards | `frontend/src/main.jsx`                  |
-| Props, empty-state conditional UI, mapped table rows and keys         | `frontend/src/components/UsersTable.jsx` |
-| Reusable components, `children`, defaults, `className` props          | `frontend/src/components/layouts.jsx`    |
-| API wrapper and abort-signal forwarding                               | `frontend/src/api/client.js`             |
-| Conditional Tailwind class helper                                     | `frontend/src/lib/cn.js`                 |
+| Root render, strict mode, state, Effect, conditional UI, mapped cards | `frontend/src/main.tsx`                  |
+| Props, empty-state conditional UI, mapped table rows and keys         | `frontend/src/components/UsersTable.tsx` |
+| Reusable components, `children`, defaults, `className` props          | `frontend/src/components/layouts.tsx`    |
+| API wrapper and abort-signal forwarding                               | `frontend/src/api/client.ts`             |
+| Conditional Tailwind class helper                                     | `frontend/src/lib/cn.ts`                 |
 
 When adding a screen, begin with a function component, keep server I/O in the
 API client, model the UI state explicitly, and compose the existing layout
@@ -262,6 +289,7 @@ primitives. Run the frontend checks before committing:
 ```bash
 cd frontend
 npm run format:check
+npm run typecheck
 npm run lint
 npm run build
 ```
