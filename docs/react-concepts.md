@@ -5,7 +5,7 @@ All frontend application code uses strict TypeScript. Define interfaces for comp
 This guide explains the React concepts currently used by the frontend and
 shows small examples based on the reference dashboard. It is a companion to the
 [frontend layout primitives](layout-primitives.md) guide: read that guide when
-you need to choose `Container`, `Stack`, `Grid`, or `SidebarLayout`.
+you need to use the `Stack` layout primitive with page-level CSS for grids.
 
 The examples use TSX, the TypeScript syntax used by the files in `frontend/src/`. TSX lets
 components describe the UI they render. TypeScript expressions appear inside

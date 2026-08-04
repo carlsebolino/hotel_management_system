@@ -1,83 +1,128 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 
 import { cn } from '../lib/cn';
 
-const containerSizes = {
-  md: 'max-w-5xl',
-  lg: 'max-w-6xl',
-  xl: 'max-w-7xl',
-  full: 'max-w-none',
-} as const;
+type Responsive<T> = T | Partial<Record<'small' | 'medium' | 'large' | 'extraLarge', T>>;
+type FlexValue = CSSProperties['flex'] | number | boolean;
+type SelfAlignment = CSSProperties['alignSelf'] | CSSProperties['justifySelf'];
 
-const stackGaps = {
-  sm: 'gap-3',
-  md: 'gap-5',
-  lg: 'gap-8',
-  xl: 'gap-12',
-} as const;
+type StackStyle = CSSProperties & Record<`--stack-${string}`, string | number | undefined>;
 
-const gridColumns = {
-  1: 'grid-cols-1',
-  2: 'grid-cols-1 md:grid-cols-2',
-  3: 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3',
-  4: 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4',
-} as const;
-
-interface CommonLayoutProps {
+interface StackProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
-  className?: string;
+  flex?: Responsive<FlexValue>;
+  flexGrow?: Responsive<number>;
+  flexShrink?: Responsive<number>;
+  flexBasis?: Responsive<CSSProperties['flexBasis']>;
+  alignSelf?: Responsive<SelfAlignment>;
+  justifySelf?: Responsive<SelfAlignment>;
+  order?: Responsive<number>;
+  margin?: Responsive<CSSProperties['margin']>;
+  marginBlock?: Responsive<CSSProperties['marginBlock']>;
+  marginInline?: Responsive<CSSProperties['marginInline']>;
+  marginTop?: Responsive<CSSProperties['marginTop']>;
+  marginRight?: Responsive<CSSProperties['marginRight']>;
+  marginBottom?: Responsive<CSSProperties['marginBottom']>;
+  marginLeft?: Responsive<CSSProperties['marginLeft']>;
+  width?: Responsive<CSSProperties['width']>;
+  minWidth?: Responsive<CSSProperties['minWidth']>;
+  position?: Responsive<CSSProperties['position']>;
+  top?: Responsive<CSSProperties['top']>;
+  right?: Responsive<CSSProperties['right']>;
+  bottom?: Responsive<CSSProperties['bottom']>;
+  left?: Responsive<CSSProperties['left']>;
 }
 
-interface ContainerProps extends CommonLayoutProps {
-  fluid?: boolean;
-  size?: keyof typeof containerSizes;
+const responsiveKeys = ['small', 'medium', 'large', 'extraLarge'] as const;
+
+function isResponsiveObject<T>(
+  value: Responsive<T> | undefined,
+): value is Partial<Record<(typeof responsiveKeys)[number], T>> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-interface StackProps extends CommonLayoutProps {
-  gap?: keyof typeof stackGaps;
+function toCssValue(value: FlexValue | CSSProperties[keyof CSSProperties] | undefined) {
+  if (typeof value === 'boolean') return value ? '1 1 0%' : '0 0 auto';
+  return value;
 }
 
-interface GridProps extends CommonLayoutProps {
-  columns?: keyof typeof gridColumns;
+function applyResponsiveStyle<T extends FlexValue | CSSProperties[keyof CSSProperties]>(
+  style: StackStyle,
+  name: string,
+  value: Responsive<T> | undefined,
+) {
+  if (value === undefined) return;
+
+  if (!isResponsiveObject(value)) {
+    style[`--stack-${name}-sm`] = toCssValue(value);
+    return;
+  }
+
+  for (const key of responsiveKeys) {
+    const responsiveValue = value[key];
+    if (responsiveValue !== undefined)
+      style[`--stack-${name}-${key}`] = toCssValue(responsiveValue);
+  }
 }
 
-interface SidebarLayoutProps extends CommonLayoutProps {
-  sidebar: ReactNode;
-}
+/**
+ * Stack is the only exported layout primitive. It accepts standard div events plus
+ * responsive style props from the referenced design-system tables.
+ */
+export function Stack({
+  alignSelf,
+  bottom,
+  children,
+  className,
+  flex,
+  flexBasis,
+  flexGrow,
+  flexShrink,
+  justifySelf,
+  left,
+  margin,
+  marginBlock,
+  marginBottom,
+  marginInline,
+  marginLeft,
+  marginRight,
+  marginTop,
+  minWidth,
+  order,
+  position,
+  right,
+  style,
+  top,
+  width,
+  ...props
+}: StackProps) {
+  const stackStyle: StackStyle = { ...style };
 
-/** Constrains page content, or spans the viewport when fluid, with responsive gutters. */
-export function Container({ children, className, fluid = false, size = 'xl' }: ContainerProps) {
+  applyResponsiveStyle(stackStyle, 'flex', flex);
+  applyResponsiveStyle(stackStyle, 'flex-grow', flexGrow);
+  applyResponsiveStyle(stackStyle, 'flex-shrink', flexShrink);
+  applyResponsiveStyle(stackStyle, 'flex-basis', flexBasis);
+  applyResponsiveStyle(stackStyle, 'align-self', alignSelf);
+  applyResponsiveStyle(stackStyle, 'justify-self', justifySelf);
+  applyResponsiveStyle(stackStyle, 'order', order);
+  applyResponsiveStyle(stackStyle, 'margin', margin);
+  applyResponsiveStyle(stackStyle, 'margin-block', marginBlock);
+  applyResponsiveStyle(stackStyle, 'margin-inline', marginInline);
+  applyResponsiveStyle(stackStyle, 'margin-top', marginTop);
+  applyResponsiveStyle(stackStyle, 'margin-right', marginRight);
+  applyResponsiveStyle(stackStyle, 'margin-bottom', marginBottom);
+  applyResponsiveStyle(stackStyle, 'margin-left', marginLeft);
+  applyResponsiveStyle(stackStyle, 'width', width);
+  applyResponsiveStyle(stackStyle, 'min-width', minWidth);
+  applyResponsiveStyle(stackStyle, 'position', position);
+  applyResponsiveStyle(stackStyle, 'top', top);
+  applyResponsiveStyle(stackStyle, 'right', right);
+  applyResponsiveStyle(stackStyle, 'bottom', bottom);
+  applyResponsiveStyle(stackStyle, 'left', left);
+
   return (
-    <div
-      className={cn(
-        'w-full px-4 sm:px-6 lg:px-8',
-        fluid ? 'max-w-none' : cn('mx-auto', containerSizes[size]),
-        className,
-      )}
-    >
+    <div className={cn('stack', className)} style={stackStyle} {...props}>
       {children}
-    </div>
-  );
-}
-
-/** Adds consistent vertical rhythm between child elements. */
-export function Stack({ children, className, gap = 'md' }: StackProps) {
-  return <div className={cn('flex flex-col', stackGaps[gap], className)}>{children}</div>;
-}
-
-/** Creates a responsive card or dashboard grid from a small set of column presets. */
-export function Grid({ children, className, columns = 1 }: GridProps) {
-  return (
-    <div className={cn('grid gap-4 md:gap-6', gridColumns[columns], className)}>{children}</div>
-  );
-}
-
-/** Places a contextual sidebar beside responsive page content. */
-export function SidebarLayout({ children, className, sidebar }: SidebarLayoutProps) {
-  return (
-    <div className={cn('grid items-start gap-6 lg:grid-cols-[15.5rem_minmax(0,1fr)]', className)}>
-      <aside className="lg:sticky lg:top-6">{sidebar}</aside>
-      <main className="min-w-0">{children}</main>
     </div>
   );
 }
