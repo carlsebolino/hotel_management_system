@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { fetchUsers, type User } from './api/client';
 import { Stack } from './components/layouts';
+import { UsersTable } from './components/UsersTable';
 import './styles.css';
 
 type BreakpointName = 'Small' | 'Medium' | 'Large' | 'Extra large';
@@ -65,11 +67,36 @@ function getBreakpoint(width: number): Breakpoint {
 
 function App() {
   const [width, setWidth] = useState(window.innerWidth);
+  const [users, setUsers] = useState<User[]>([]);
+  const [usersError, setUsersError] = useState<string | null>(null);
+  const [usersLoading, setUsersLoading] = useState(true);
 
   useEffect(() => {
     const handleResize = () => setWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadUsers() {
+      try {
+        setUsersLoading(true);
+        setUsersError(null);
+        const nextUsers = await fetchUsers({ signal: controller.signal });
+        setUsers(nextUsers);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setUsersError(error instanceof Error ? error.message : 'Unable to load users.');
+      } finally {
+        if (!controller.signal.aborted) setUsersLoading(false);
+      }
+    }
+
+    void loadUsers();
+
+    return () => controller.abort();
   }, []);
 
   const activeBreakpoint = useMemo(() => getBreakpoint(width), [width]);
@@ -113,6 +140,21 @@ function App() {
               </small>
             </Stack>
           ))}
+        </Stack>
+
+        <Stack className="details-card users-card" marginBlock="32px">
+          <Stack className="section-heading">
+            <p className="eyebrow">Flask API smoke path</p>
+            <h2>Demo users loaded from the backend</h2>
+            <p className="intro">
+              The Vite app still calls <code>VITE_API_BASE_URL</code> and renders the Flask
+              <code>/api/v1/users</code> response so the documented frontend/backend flow is
+              exercised by default.
+            </p>
+          </Stack>
+          {usersLoading ? <p className="empty-state">Loading users from Flask…</p> : null}
+          {usersError ? <p className="error-state">{usersError}</p> : null}
+          {!usersLoading && !usersError ? <UsersTable users={users} /> : null}
         </Stack>
 
         <Stack className="details-card" marginBlock="32px">

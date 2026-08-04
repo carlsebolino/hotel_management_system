@@ -134,7 +134,8 @@ body {
 }
 
 .hero,
-.details-card {
+.details-card,
+.section-heading {
   gap: 1rem;
 }
 
@@ -165,6 +166,14 @@ h1 {
   font-size: 1.05rem;
   line-height: 1.75;
   max-width: 48rem;
+}
+
+code {
+  background: #f4f4f5;
+  border-radius: 0.35rem;
+  color: #3f3f46;
+  font-size: 0.9em;
+  padding: 0.1rem 0.3rem;
 }
 
 .status-panel {
@@ -256,6 +265,27 @@ h1 {
   border: 1px solid #e4e4e7;
   border-radius: 1.25rem;
   padding: 1rem;
+}
+
+.users-card {
+  box-shadow: 0 1rem 2rem rgb(24 24 27 / 8%);
+}
+
+.empty-state,
+.error-state {
+  border-radius: 0.85rem;
+  margin: 0;
+  padding: 1rem;
+}
+
+.empty-state {
+  background: #f4f4f5;
+  color: #52525b;
+}
+
+.error-state {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .details-grid {
