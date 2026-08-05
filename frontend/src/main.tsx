@@ -1,167 +1,196 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { fetchUsers } from './api/client';
-import type { User } from './api/client';
-import { LayoutExamples } from './components/LayoutExamples';
+import { fetchUsers, type User } from './api/client';
+import { Col, Container, Row, Stack } from './components/layouts';
 import { UsersTable } from './components/UsersTable';
-import { Container, Grid, SidebarLayout, Stack } from './components/layouts';
 import './styles.css';
 
-const summaryCards = [
-  { label: 'Tasks today', value: '24', detail: '8 completed', tone: 'bg-sky-50 text-sky-700' },
+type BreakpointName = 'Small' | 'Medium' | 'Large' | 'Extra large';
+type Breakpoint = {
+  name: BreakpointName;
+  short: 'SM' | 'MD' | 'LG' | 'XL';
+  range: string;
+  device: string;
+  columns: 4 | 8 | 12;
+  margin: string;
+  colorClass: string;
+};
+
+const breakpoints: [Breakpoint, Breakpoint, Breakpoint, Breakpoint] = [
   {
-    label: 'Progress',
-    value: '86%',
-    detail: '12 items remaining',
-    tone: 'bg-violet-50 text-violet-700',
+    name: 'Small',
+    short: 'SM',
+    range: '320px–767px',
+    device: 'Smartphone + desktop',
+    columns: 4,
+    margin: '16px',
+    colorClass: 'is-small',
   },
   {
-    label: 'Open requests',
-    value: '7',
-    detail: '2 need attention',
-    tone: 'bg-amber-50 text-amber-700',
+    name: 'Medium',
+    short: 'MD',
+    range: '768px–1023px',
+    device: 'Tablet + desktop',
+    columns: 8,
+    margin: '24px',
+    colorClass: 'is-md',
+  },
+  {
+    name: 'Large',
+    short: 'LG',
+    range: '1024px–1439px',
+    device: 'Desktop',
+    columns: 12,
+    margin: '32px',
+    colorClass: 'is-large',
+  },
+  {
+    name: 'Extra large',
+    short: 'XL',
+    range: '1440px and up',
+    device: 'Desktop',
+    columns: 12,
+    margin: 'Flexible',
+    colorClass: 'is-extra-large',
   },
 ];
 
+function getBreakpoint(width: number): Breakpoint {
+  if (width >= 1440)
+    return breakpoints.find((breakpoint) => breakpoint.short === 'XL') ?? breakpoints[0];
+  if (width >= 1024)
+    return breakpoints.find((breakpoint) => breakpoint.short === 'LG') ?? breakpoints[0];
+  if (width >= 768)
+    return breakpoints.find((breakpoint) => breakpoint.short === 'MD') ?? breakpoints[0];
+  return breakpoints[0];
+}
+
 function App() {
+  const [width, setWidth] = useState(window.innerWidth);
   const [users, setUsers] = useState<User[]>([]);
-  const [status, setStatus] = useState('Loading API data...');
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasApiError, setHasApiError] = useState(false);
+  const [usersError, setUsersError] = useState<string | null>(null);
+  const [usersLoading, setUsersLoading] = useState(true);
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
 
-    fetchUsers({ signal: controller.signal })
-      .then((loadedUsers) => {
-        setUsers(loadedUsers);
-        setStatus('Connected to Flask API');
-        setHasApiError(false);
-      })
-      .catch((error) => {
-        if (!(error instanceof DOMException && error.name === 'AbortError')) {
-          setStatus('API unavailable');
-          setHasApiError(true);
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
-      });
+    async function loadUsers() {
+      try {
+        setUsersLoading(true);
+        setUsersError(null);
+        const nextUsers = await fetchUsers({ signal: controller.signal });
+        setUsers(nextUsers);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setUsersError(error instanceof Error ? error.message : 'Unable to load users.');
+      } finally {
+        if (!controller.signal.aborted) setUsersLoading(false);
+      }
+    }
+
+    void loadUsers();
 
     return () => controller.abort();
   }, []);
 
+  const activeBreakpoint = useMemo(() => getBreakpoint(width), [width]);
+  const columns = Array.from({ length: activeBreakpoint.columns }, (_, index) => index + 1);
+
   return (
-    <div className="min-h-screen bg-slate-50 py-8 sm:py-12">
-      <Stack gap="lg">
-        <Container>
-          <Stack gap="lg">
-            <header className="flex flex-col justify-between gap-5 rounded-3xl bg-slate-900 px-6 py-8 text-white shadow-xl shadow-slate-300 sm:flex-row sm:items-end sm:px-9">
-              <div>
-                <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-sky-300">
-                  Layout primitives
-                </p>
-                <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                  Reference application dashboard
-                </h1>
-                <p className="mt-3 max-w-2xl text-slate-300">
-                  A responsive Tailwind demonstration built from reusable Container, Stack, Grid,
-                  and SidebarLayout components.
-                </p>
-              </div>
-              <button className="rounded-xl bg-sky-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-sky-300">
-                New item
-              </button>
-            </header>
+    <main className={`app-shell ${activeBreakpoint.colorClass}`}>
+      <Container className="page-frame">
+        <Stack className="hero" marginBlock="32px">
+          <p className="eyebrow">Bootstrap-like layout system demo</p>
+          <h1>Responsive columns you can see change.</h1>
+          <p className="intro">
+            This page uses Bootstrap-style Container, Row, and Col helpers backed by the attached
+            breakpoint rules: 4 columns on small screens, 8 on medium screens, and 12 on large and
+            extra-large screens. The column labels use container-query units so the text scales to
+            each column instead of the viewport.
+          </p>
+        </Stack>
 
-            <Grid columns={3}>
-              {summaryCards.map((item) => (
-                <section
-                  key={item.label}
-                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-                >
-                  <p className="text-sm font-medium text-slate-500">{item.label}</p>
-                  <div className="mt-4 flex items-end justify-between gap-3">
-                    <strong className="text-3xl tracking-tight text-slate-900">{item.value}</strong>
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${item.tone}`}>
-                      {item.detail}
-                    </span>
-                  </div>
-                </section>
-              ))}
-            </Grid>
+        <Stack className="status-panel" position="sticky" top="16px" marginBottom="24px">
+          <div>
+            <span className="status-dot" aria-hidden="true" />
+            <strong>{activeBreakpoint.name}</strong>
+          </div>
+          <span>{width}px viewport</span>
+          <span>{activeBreakpoint.columns} active columns</span>
+        </Stack>
+
+        <Row
+          className="grid-demo"
+          aria-label={`${activeBreakpoint.columns} column responsive grid`}
+        >
+          {columns.map((column) => (
+            <Col key={column} span={1}>
+              <Stack className="demo-column">
+                <span>Column</span>
+                <strong>{column}</strong>
+                <small>
+                  {activeBreakpoint.short} / {activeBreakpoint.columns}
+                </small>
+              </Stack>
+            </Col>
+          ))}
+        </Row>
+
+        <Stack className="details-card users-card" marginBlock="32px">
+          <Stack className="section-heading">
+            <p className="eyebrow">Flask API smoke path</p>
+            <h2>Demo users loaded from the backend</h2>
+            <p className="intro">
+              The Vite app still calls <code>VITE_API_BASE_URL</code> and renders the Flask
+              <code>/api/v1/users</code> response so the documented frontend/backend flow is
+              exercised by default.
+            </p>
           </Stack>
-        </Container>
+          {usersLoading ? <p className="empty-state">Loading users from Flask…</p> : null}
+          {usersError ? <p className="error-state">{usersError}</p> : null}
+          {!usersLoading && !usersError ? <UsersTable users={users} /> : null}
+        </Stack>
 
-        <LayoutExamples />
-
-        <Container>
-          <SidebarLayout
-            sidebar={
-              <nav
-                aria-label="Dashboard sections"
-                className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
-              >
-                <p className="px-3 pb-2 pt-1 text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Workspace
-                </p>
-                {['Overview', 'Projects', 'Tasks', 'Team'].map((item, index) => (
-                  <a
-                    key={item}
-                    className={`mb-1 block rounded-xl px-3 py-2.5 text-sm font-semibold ${index === 0 ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
-                    href={`#${item.toLowerCase()}`}
-                  >
-                    {item}
-                  </a>
-                ))}
-              </nav>
-            }
+        <Stack className="details-card" marginBlock="32px">
+          <h2>Attached grid details</h2>
+          <div
+            className="details-grid"
+            role="table"
+            aria-label="Responsive grid breakpoint details"
           >
-            <Stack gap="md">
-              <section
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-                id="overview"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">Team directory</p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      Data is loaded from the Flask API.
-                    </p>
-                  </div>
-                  <span
-                    className={`rounded-full px-3 py-1.5 text-xs font-bold ${hasApiError ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}`}
-                    role="status"
-                  >
-                    {status}
-                  </span>
-                </div>
-                <div aria-busy={isLoading}>
-                  {isLoading ? (
-                    <p className="mt-4 text-sm text-slate-500">Loading users...</p>
-                  ) : (
-                    <UsersTable users={users} />
-                  )}
-                </div>
-              </section>
-              <p className="text-center text-sm text-slate-500">
-                Resize this page to see the grid and sidebar adapt for smaller screens.
-              </p>
-            </Stack>
-          </SidebarLayout>
-        </Container>
-      </Stack>
-    </div>
+            <strong>Size</strong>
+            <strong>Device</strong>
+            <strong>Breakpoints</strong>
+            <strong>Gutter</strong>
+            <strong>Margins</strong>
+            <strong>Columns</strong>
+            {breakpoints.map((breakpoint) => (
+              <React.Fragment key={breakpoint.short}>
+                <span className={breakpoint.short === activeBreakpoint.short ? 'active-cell' : ''}>
+                  {breakpoint.name}
+                </span>
+                <span>{breakpoint.device}</span>
+                <span>{breakpoint.range}</span>
+                <span>16px</span>
+                <span>{breakpoint.margin}</span>
+                <span>{breakpoint.columns}</span>
+              </React.Fragment>
+            ))}
+          </div>
+        </Stack>
+      </Container>
+    </main>
   );
 }
 
 const rootElement = document.getElementById('root');
-
-if (!rootElement) {
-  throw new Error('Root element was not found.');
-}
+if (!rootElement) throw new Error('Root element was not found.');
 
 createRoot(rootElement).render(
   <React.StrictMode>

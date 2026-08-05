@@ -5,7 +5,7 @@ All frontend application code uses strict TypeScript. Define interfaces for comp
 This guide explains the React concepts currently used by the frontend and
 shows small examples based on the reference dashboard. It is a companion to the
 [frontend layout primitives](layout-primitives.md) guide: read that guide when
-you need to choose `Container`, `Stack`, `Grid`, or `SidebarLayout`.
+you need to use `Container`, `Row`, `Col`, and `Stack` for responsive layouts.
 
 The examples use TSX, the TypeScript syntax used by the files in `frontend/src/`. TSX lets
 components describe the UI they render. TypeScript expressions appear inside
@@ -46,8 +46,12 @@ needs it. The dashboard's `App` component composes the page, while
 export function WelcomePanel() {
   return (
     <section className="rounded-2xl bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold">Welcome to the reference workspace</h2>
-      <p className="mt-1 text-slate-500">Review upcoming work and open requests.</p>
+      <h2 className="text-lg font-semibold">
+        Welcome to the reference workspace
+      </h2>
+      <p className="mt-1 text-slate-500">
+        Review upcoming work and open requests.
+      </p>
     </section>
   );
 }
@@ -165,7 +169,10 @@ function TeamDirectory() {
     fetchUsers({ signal: controller.signal })
       .then(setUsers)
       .catch((requestError) => {
-        if (requestError instanceof Error && requestError.name !== "AbortError") {
+        if (
+          requestError instanceof Error &&
+          requestError.name !== "AbortError"
+        ) {
           setError(requestError);
         }
       })
