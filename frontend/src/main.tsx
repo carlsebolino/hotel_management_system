@@ -111,7 +111,8 @@ function App() {
           <p className="intro">
             This page uses Bootstrap-style Container, Row, and Col helpers backed by the attached
             breakpoint rules: 4 columns on small screens, 8 on medium screens, and 12 on large and
-            extra-large screens.
+            extra-large screens. The column labels use container-query units so the text scales to
+            each column instead of the viewport.
           </p>
         </Stack>
 

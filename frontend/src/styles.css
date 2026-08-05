@@ -519,13 +519,19 @@ code {
 }
 
 .demo-column {
+  align-items: center;
   background: linear-gradient(180deg, var(--active-color-soft), white);
   border: 2px solid var(--active-color);
   border-radius: 1rem;
   color: var(--active-color-dark);
+  container-type: inline-size;
   gap: 0.75rem;
+  justify-content: center;
   min-height: 13rem;
-  padding: 1rem;
+  min-width: 0;
+  overflow: hidden;
+  padding: clamp(0.5rem, 8cqi, 1rem);
+  text-align: center;
   transition:
     background-color 240ms ease,
     border-color 240ms ease,
@@ -539,15 +545,31 @@ code {
 
 .demo-column span,
 .demo-column small {
-  font-size: 0.72rem;
+  font-size: clamp(0.52rem, 10cqi, 0.72rem);
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: clamp(0.04em, 1.2cqi, 0.12em);
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
   text-transform: uppercase;
+  text-wrap: balance;
 }
 
 .demo-column strong {
-  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-size: clamp(1.75rem, 45cqi, 5rem);
   line-height: 1;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+@supports not (font-size: 1cqi) {
+  .demo-column span,
+  .demo-column small {
+    font-size: clamp(0.55rem, 1.25vw, 0.72rem);
+  }
+
+  .demo-column strong {
+    font-size: clamp(2rem, 7vw, 5rem);
+  }
 }
 
 .details-card {
