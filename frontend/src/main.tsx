@@ -33,7 +33,7 @@ const breakpoints: [Breakpoint, Breakpoint, Breakpoint, Breakpoint] = [
     device: 'Tablet + desktop',
     columns: 8,
     margin: '24px',
-    colorClass: 'is-medium',
+    colorClass: 'is-md',
   },
   {
     name: 'Large',

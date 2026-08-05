@@ -7,7 +7,7 @@ type FlexValue = CSSProperties['flex'] | number | boolean;
 type SelfAlignment = CSSProperties['alignSelf'] | CSSProperties['justifySelf'];
 
 type LayoutStyle = CSSProperties & Record<`--${string}`, string | number | undefined>;
-type ColumnSpan = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 'auto';
+type ColumnSpan = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 interface ContainerProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;

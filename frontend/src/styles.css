@@ -47,9 +47,10 @@ body {
   :where(.layout-row) {
     --layout-columns: var(--layout-columns-sm);
     --row-gap-sm: var(--layout-gutter);
+    --row-gap: var(--row-gap-sm);
     display: flex;
     flex-wrap: wrap;
-    gap: var(--row-gap-sm);
+    gap: var(--row-gap);
   }
 
   :where(.layout-col) {
@@ -65,12 +66,12 @@ body {
   :where(.layout-col[style*='--col-span-sm']) {
     flex: 0 0
       calc(
-        (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-sm) /
-          var(--layout-columns) + (var(--col-span-sm) - 1) * var(--layout-gutter)
+        (100% - ((var(--layout-columns) - 1) * var(--row-gap))) * var(--col-span-sm) /
+          var(--layout-columns) + (var(--col-span-sm) - 1) * var(--row-gap)
       );
     max-inline-size: calc(
-      (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-sm) /
-        var(--layout-columns) + (var(--col-span-sm) - 1) * var(--layout-gutter)
+      (100% - ((var(--layout-columns) - 1) * var(--row-gap))) * var(--col-span-sm) /
+        var(--layout-columns) + (var(--col-span-sm) - 1) * var(--row-gap)
     );
   }
 
@@ -112,7 +113,7 @@ body {
     }
 
     :where(.layout-row) {
-      gap: var(--row-gap-md, var(--row-gap-sm));
+      --row-gap: var(--row-gap-md, var(--row-gap-sm));
     }
 
     :where(.layout-col) {
@@ -122,12 +123,12 @@ body {
     :where(.layout-col[style*='--col-span-md']) {
       flex: 0 0
         calc(
-          (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-md) /
-            var(--layout-columns) + (var(--col-span-md) - 1) * var(--layout-gutter)
+          (100% - ((var(--layout-columns) - 1) * var(--row-gap))) * var(--col-span-md) /
+            var(--layout-columns) + (var(--col-span-md) - 1) * var(--row-gap)
         );
       max-inline-size: calc(
-        (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-md) /
-          var(--layout-columns) + (var(--col-span-md) - 1) * var(--layout-gutter)
+        (100% - ((var(--layout-columns) - 1) * var(--row-gap))) * var(--col-span-md) /
+          var(--layout-columns) + (var(--col-span-md) - 1) * var(--row-gap)
       );
     }
   }
@@ -142,7 +143,7 @@ body {
     }
 
     :where(.layout-row) {
-      gap: var(--row-gap-lg, var(--row-gap-md, var(--row-gap-sm)));
+      --row-gap: var(--row-gap-lg, var(--row-gap-md, var(--row-gap-sm)));
     }
 
     :where(.layout-col) {
@@ -152,12 +153,12 @@ body {
     :where(.layout-col[style*='--col-span-lg']) {
       flex: 0 0
         calc(
-          (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-lg) /
-            var(--layout-columns) + (var(--col-span-lg) - 1) * var(--layout-gutter)
+          (100% - ((var(--layout-columns) - 1) * var(--row-gap))) * var(--col-span-lg) /
+            var(--layout-columns) + (var(--col-span-lg) - 1) * var(--row-gap)
         );
       max-inline-size: calc(
-        (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-lg) /
-          var(--layout-columns) + (var(--col-span-lg) - 1) * var(--layout-gutter)
+        (100% - ((var(--layout-columns) - 1) * var(--row-gap))) * var(--col-span-lg) /
+          var(--layout-columns) + (var(--col-span-lg) - 1) * var(--row-gap)
       );
     }
   }
@@ -172,7 +173,7 @@ body {
     }
 
     :where(.layout-row) {
-      gap: var(--row-gap-xl, var(--row-gap-lg, var(--row-gap-md, var(--row-gap-sm))));
+      --row-gap: var(--row-gap-xl, var(--row-gap-lg, var(--row-gap-md, var(--row-gap-sm))));
     }
 
     :where(.layout-col) {
@@ -182,12 +183,12 @@ body {
     :where(.layout-col[style*='--col-span-xl']) {
       flex: 0 0
         calc(
-          (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-xl) /
-            var(--layout-columns) + (var(--col-span-xl) - 1) * var(--layout-gutter)
+          (100% - ((var(--layout-columns) - 1) * var(--row-gap))) * var(--col-span-xl) /
+            var(--layout-columns) + (var(--col-span-xl) - 1) * var(--row-gap)
         );
       max-inline-size: calc(
-        (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-xl) /
-          var(--layout-columns) + (var(--col-span-xl) - 1) * var(--layout-gutter)
+        (100% - ((var(--layout-columns) - 1) * var(--row-gap))) * var(--col-span-xl) /
+          var(--layout-columns) + (var(--col-span-xl) - 1) * var(--row-gap)
       );
     }
   }
