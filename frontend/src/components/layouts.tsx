@@ -37,14 +37,11 @@ interface StackProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const responsiveKeys = ['small', 'medium', 'large', 'extraLarge'] as const;
-const responsiveSuffixes: Record<
-  (typeof responsiveKeys)[number],
-  'sm' | 'medium' | 'large' | 'extraLarge'
-> = {
+const responsiveSuffixes: Record<(typeof responsiveKeys)[number], 'sm' | 'md' | 'lg' | 'xl'> = {
   small: 'sm',
-  medium: 'medium',
-  large: 'large',
-  extraLarge: 'extraLarge',
+  medium: 'md',
+  large: 'lg',
+  extraLarge: 'xl',
 };
 const lengthStyleNames = new Set([
   'gap',
