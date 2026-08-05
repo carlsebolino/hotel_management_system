@@ -25,9 +25,11 @@ body {
   display: flex;
   flex: var(--stack-flex-sm, initial);
   flex-basis: var(--stack-flex-basis-sm, auto);
-  flex-direction: column;
+  flex-direction: var(--stack-direction-sm, column);
   flex-grow: var(--stack-flex-grow-sm, 0);
   flex-shrink: var(--stack-flex-shrink-sm, 1);
+  flex-wrap: var(--stack-flex-wrap-sm, nowrap);
+  gap: var(--stack-gap-sm, initial);
   justify-self: var(--stack-justify-self-sm, initial);
   left: var(--stack-left-sm, auto);
   margin: var(--stack-margin-sm, initial);
@@ -51,8 +53,11 @@ body {
     bottom: var(--stack-bottom-medium, var(--stack-bottom-sm, auto));
     flex: var(--stack-flex-medium, var(--stack-flex-sm, initial));
     flex-basis: var(--stack-flex-basis-medium, var(--stack-flex-basis-sm, auto));
+    flex-direction: var(--stack-direction-medium, var(--stack-direction-sm, column));
     flex-grow: var(--stack-flex-grow-medium, var(--stack-flex-grow-sm, 0));
     flex-shrink: var(--stack-flex-shrink-medium, var(--stack-flex-shrink-sm, 1));
+    flex-wrap: var(--stack-flex-wrap-medium, var(--stack-flex-wrap-sm, nowrap));
+    gap: var(--stack-gap-medium, var(--stack-gap-sm, initial));
     justify-self: var(--stack-justify-self-medium, var(--stack-justify-self-sm, initial));
     left: var(--stack-left-medium, var(--stack-left-sm, auto));
     margin: var(--stack-margin-medium, var(--stack-margin-sm, initial));
@@ -72,6 +77,19 @@ body {
 
 @media (min-width: 1024px) {
   .stack {
+    flex-basis: var(
+      --stack-flex-basis-large,
+      var(--stack-flex-basis-medium, var(--stack-flex-basis-sm, auto))
+    );
+    flex-direction: var(
+      --stack-direction-large,
+      var(--stack-direction-medium, var(--stack-direction-sm, column))
+    );
+    flex-wrap: var(
+      --stack-flex-wrap-large,
+      var(--stack-flex-wrap-medium, var(--stack-flex-wrap-sm, nowrap))
+    );
+    gap: var(--stack-gap-large, var(--stack-gap-medium, var(--stack-gap-sm, initial)));
     margin-inline: var(
       --stack-margin-inline-large,
       var(--stack-margin-inline-medium, var(--stack-margin-inline-sm, initial))
@@ -83,6 +101,25 @@ body {
 
 @media (min-width: 1440px) {
   .stack {
+    flex-basis: var(
+      --stack-flex-basis-extraLarge,
+      var(
+        --stack-flex-basis-large,
+        var(--stack-flex-basis-medium, var(--stack-flex-basis-sm, auto))
+      )
+    );
+    flex-direction: var(
+      --stack-direction-extraLarge,
+      var(--stack-direction-large, var(--stack-direction-medium, var(--stack-direction-sm, column)))
+    );
+    flex-wrap: var(
+      --stack-flex-wrap-extraLarge,
+      var(--stack-flex-wrap-large, var(--stack-flex-wrap-medium, var(--stack-flex-wrap-sm, nowrap)))
+    );
+    gap: var(
+      --stack-gap-extraLarge,
+      var(--stack-gap-large, var(--stack-gap-medium, var(--stack-gap-sm, initial)))
+    );
     margin-inline: var(
       --stack-margin-inline-extraLarge,
       var(
@@ -208,24 +245,6 @@ code {
   display: inline-block;
   height: 0.7rem;
   width: 0.7rem;
-}
-
-.grid-demo {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-@media (min-width: 768px) {
-  .grid-demo {
-    grid-template-columns: repeat(8, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1024px) {
-  .grid-demo {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-  }
 }
 
 .demo-column {

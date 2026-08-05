@@ -10,7 +10,10 @@ type StackStyle = CSSProperties & Record<`--stack-${string}`, string | number | 
 
 interface StackProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
+  direction?: Responsive<CSSProperties['flexDirection']>;
   flex?: Responsive<FlexValue>;
+  flexWrap?: Responsive<CSSProperties['flexWrap']>;
+  gap?: Responsive<CSSProperties['gap']>;
   flexGrow?: Responsive<number>;
   flexShrink?: Responsive<number>;
   flexBasis?: Responsive<CSSProperties['flexBasis']>;
@@ -74,10 +77,13 @@ export function Stack({
   bottom,
   children,
   className,
+  direction,
   flex,
   flexBasis,
   flexGrow,
   flexShrink,
+  flexWrap,
+  gap,
   justifySelf,
   left,
   margin,
@@ -98,7 +104,10 @@ export function Stack({
 }: StackProps) {
   const stackStyle: StackStyle = { ...style };
 
+  applyResponsiveStyle(stackStyle, 'direction', direction);
   applyResponsiveStyle(stackStyle, 'flex', flex);
+  applyResponsiveStyle(stackStyle, 'flex-wrap', flexWrap);
+  applyResponsiveStyle(stackStyle, 'gap', gap);
   applyResponsiveStyle(stackStyle, 'flex-grow', flexGrow);
   applyResponsiveStyle(stackStyle, 'flex-shrink', flexShrink);
   applyResponsiveStyle(stackStyle, 'flex-basis', flexBasis);

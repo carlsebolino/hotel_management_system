@@ -16,6 +16,13 @@ type Breakpoint = {
   colorClass: string;
 };
 
+const columnFlexBasis = {
+  small: 'calc((100% - 48px) / 4)',
+  medium: 'calc((100% - 112px) / 8)',
+  large: 'calc((100% - 176px) / 12)',
+  extraLarge: 'calc((100% - 176px) / 12)',
+} as const;
+
 const breakpoints: [Breakpoint, Breakpoint, Breakpoint, Breakpoint] = [
   {
     name: 'Small',
@@ -129,10 +136,20 @@ function App() {
 
         <Stack
           className="grid-demo"
+          direction="row"
+          flexWrap="wrap"
+          gap="16px"
           aria-label={`${activeBreakpoint.columns} column responsive grid`}
         >
           {columns.map((column) => (
-            <Stack key={column} className="demo-column" flex justifySelf="stretch">
+            <Stack
+              key={column}
+              className="demo-column"
+              flex="0 0 auto"
+              flexBasis={columnFlexBasis}
+              flexShrink={0}
+              width={columnFlexBasis}
+            >
               <span>Column</span>
               <strong>{column}</strong>
               <small>
