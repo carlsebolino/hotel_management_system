@@ -19,118 +19,274 @@ body {
   margin: 0;
 }
 
-.stack {
-  align-self: var(--stack-align-self-sm, initial);
-  bottom: var(--stack-bottom-sm, auto);
-  display: flex;
-  flex: var(--stack-flex-sm, initial);
-  flex-basis: var(--stack-flex-basis-sm, auto);
-  flex-direction: var(--stack-direction-sm, column);
-  flex-grow: var(--stack-flex-grow-sm, 0);
-  flex-shrink: var(--stack-flex-shrink-sm, 1);
-  flex-wrap: var(--stack-flex-wrap-sm, nowrap);
-  gap: var(--stack-gap-sm, initial);
-  justify-self: var(--stack-justify-self-sm, initial);
-  left: var(--stack-left-sm, auto);
-  margin: var(--stack-margin-sm, initial);
-  margin-block: var(--stack-margin-block-sm, initial);
-  margin-bottom: var(--stack-margin-bottom-sm, initial);
-  margin-inline: var(--stack-margin-inline-sm, initial);
-  margin-left: var(--stack-margin-left-sm, initial);
-  margin-right: var(--stack-margin-right-sm, initial);
-  margin-top: var(--stack-margin-top-sm, initial);
-  min-width: var(--stack-min-width-sm, 0);
-  order: var(--stack-order-sm, 0);
-  position: var(--stack-position-sm, static);
-  right: var(--stack-right-sm, auto);
-  top: var(--stack-top-sm, auto);
-  width: var(--stack-width-sm, auto);
-}
-
-@media (min-width: 768px) {
+@layer components {
   .stack {
-    align-self: var(--stack-align-self-medium, var(--stack-align-self-sm, initial));
-    bottom: var(--stack-bottom-medium, var(--stack-bottom-sm, auto));
-    flex: var(--stack-flex-medium, var(--stack-flex-sm, initial));
-    flex-basis: var(--stack-flex-basis-medium, var(--stack-flex-basis-sm, auto));
-    flex-direction: var(--stack-direction-medium, var(--stack-direction-sm, column));
-    flex-grow: var(--stack-flex-grow-medium, var(--stack-flex-grow-sm, 0));
-    flex-shrink: var(--stack-flex-shrink-medium, var(--stack-flex-shrink-sm, 1));
-    flex-wrap: var(--stack-flex-wrap-medium, var(--stack-flex-wrap-sm, nowrap));
-    gap: var(--stack-gap-medium, var(--stack-gap-sm, initial));
-    justify-self: var(--stack-justify-self-medium, var(--stack-justify-self-sm, initial));
-    left: var(--stack-left-medium, var(--stack-left-sm, auto));
-    margin: var(--stack-margin-medium, var(--stack-margin-sm, initial));
-    margin-block: var(--stack-margin-block-medium, var(--stack-margin-block-sm, initial));
-    margin-bottom: var(--stack-margin-bottom-medium, var(--stack-margin-bottom-sm, initial));
-    margin-inline: var(--stack-margin-inline-medium, var(--stack-margin-inline-sm, initial));
-    margin-left: var(--stack-margin-left-medium, var(--stack-margin-left-sm, initial));
-    margin-right: var(--stack-margin-right-medium, var(--stack-margin-right-sm, initial));
-    margin-top: var(--stack-margin-top-medium, var(--stack-margin-top-sm, initial));
-    order: var(--stack-order-medium, var(--stack-order-sm, 0));
-    position: var(--stack-position-medium, var(--stack-position-sm, static));
-    right: var(--stack-right-medium, var(--stack-right-sm, auto));
-    top: var(--stack-top-medium, var(--stack-top-sm, auto));
-    width: var(--stack-width-medium, var(--stack-width-sm, auto));
+    display: flex;
+    align-self: var(--stack-align-self-sm, initial);
+    bottom: var(--stack-bottom-sm, auto);
+    flex: var(--stack-flex-sm, initial);
+    flex-basis: var(--stack-flex-basis-sm, auto);
+    flex-direction: var(--stack-direction-sm, column);
+    flex-grow: var(--stack-flex-grow-sm, 0);
+    flex-shrink: var(--stack-flex-shrink-sm, 1);
+    flex-wrap: var(--stack-flex-wrap-sm, nowrap);
+    gap: var(--stack-gap-sm, initial);
+    justify-self: var(--stack-justify-self-sm, initial);
+    left: var(--stack-left-sm, auto);
+    margin: var(--stack-margin-sm, initial);
+    margin-block: var(--stack-margin-block-sm, initial);
+    margin-bottom: var(--stack-margin-bottom-sm, initial);
+    margin-inline: var(--stack-margin-inline-sm, initial);
+    margin-left: var(--stack-margin-left-sm, initial);
+    margin-right: var(--stack-margin-right-sm, initial);
+    margin-top: var(--stack-margin-top-sm, initial);
+    min-width: var(--stack-min-width-sm, 0);
+    order: var(--stack-order-sm, 0);
+    position: var(--stack-position-sm, static);
+    right: var(--stack-right-sm, auto);
+    top: var(--stack-top-sm, auto);
+    width: var(--stack-width-sm, auto);
   }
-}
 
-@media (min-width: 1024px) {
-  .stack {
-    flex-basis: var(
-      --stack-flex-basis-large,
-      var(--stack-flex-basis-medium, var(--stack-flex-basis-sm, auto))
-    );
-    flex-direction: var(
-      --stack-direction-large,
-      var(--stack-direction-medium, var(--stack-direction-sm, column))
-    );
-    flex-wrap: var(
-      --stack-flex-wrap-large,
-      var(--stack-flex-wrap-medium, var(--stack-flex-wrap-sm, nowrap))
-    );
-    gap: var(--stack-gap-large, var(--stack-gap-medium, var(--stack-gap-sm, initial)));
-    margin-inline: var(
-      --stack-margin-inline-large,
-      var(--stack-margin-inline-medium, var(--stack-margin-inline-sm, initial))
-    );
-    top: var(--stack-top-large, var(--stack-top-medium, var(--stack-top-sm, auto)));
-    width: var(--stack-width-large, var(--stack-width-medium, var(--stack-width-sm, auto)));
+  @media (min-width: 768px) {
+    .stack {
+      align-self: var(--stack-align-self-medium, var(--stack-align-self-sm, initial));
+      bottom: var(--stack-bottom-medium, var(--stack-bottom-sm, auto));
+      flex: var(--stack-flex-medium, var(--stack-flex-sm, initial));
+      flex-basis: var(--stack-flex-basis-medium, var(--stack-flex-basis-sm, auto));
+      flex-direction: var(--stack-direction-medium, var(--stack-direction-sm, column));
+      flex-grow: var(--stack-flex-grow-medium, var(--stack-flex-grow-sm, 0));
+      flex-shrink: var(--stack-flex-shrink-medium, var(--stack-flex-shrink-sm, 1));
+      flex-wrap: var(--stack-flex-wrap-medium, var(--stack-flex-wrap-sm, nowrap));
+      gap: var(--stack-gap-medium, var(--stack-gap-sm, initial));
+      justify-self: var(--stack-justify-self-medium, var(--stack-justify-self-sm, initial));
+      left: var(--stack-left-medium, var(--stack-left-sm, auto));
+      margin: var(--stack-margin-medium, var(--stack-margin-sm, initial));
+      margin-block: var(--stack-margin-block-medium, var(--stack-margin-block-sm, initial));
+      margin-bottom: var(--stack-margin-bottom-medium, var(--stack-margin-bottom-sm, initial));
+      margin-inline: var(--stack-margin-inline-medium, var(--stack-margin-inline-sm, initial));
+      margin-left: var(--stack-margin-left-medium, var(--stack-margin-left-sm, initial));
+      margin-right: var(--stack-margin-right-medium, var(--stack-margin-right-sm, initial));
+      margin-top: var(--stack-margin-top-medium, var(--stack-margin-top-sm, initial));
+      min-width: var(--stack-min-width-medium, var(--stack-min-width-sm, 0));
+      order: var(--stack-order-medium, var(--stack-order-sm, 0));
+      position: var(--stack-position-medium, var(--stack-position-sm, static));
+      right: var(--stack-right-medium, var(--stack-right-sm, auto));
+      top: var(--stack-top-medium, var(--stack-top-sm, auto));
+      width: var(--stack-width-medium, var(--stack-width-sm, auto));
+    }
   }
-}
-
-@media (min-width: 1440px) {
-  .stack {
-    flex-basis: var(
-      --stack-flex-basis-extraLarge,
-      var(
+  @media (min-width: 1024px) {
+    .stack {
+      align-self: var(
+        --stack-align-self-large,
+        var(--stack-align-self-medium, var(--stack-align-self-sm, initial))
+      );
+      bottom: var(--stack-bottom-large, var(--stack-bottom-medium, var(--stack-bottom-sm, auto)));
+      flex: var(--stack-flex-large, var(--stack-flex-medium, var(--stack-flex-sm, initial)));
+      flex-basis: var(
         --stack-flex-basis-large,
         var(--stack-flex-basis-medium, var(--stack-flex-basis-sm, auto))
-      )
-    );
-    flex-direction: var(
-      --stack-direction-extraLarge,
-      var(--stack-direction-large, var(--stack-direction-medium, var(--stack-direction-sm, column)))
-    );
-    flex-wrap: var(
-      --stack-flex-wrap-extraLarge,
-      var(--stack-flex-wrap-large, var(--stack-flex-wrap-medium, var(--stack-flex-wrap-sm, nowrap)))
-    );
-    gap: var(
-      --stack-gap-extraLarge,
-      var(--stack-gap-large, var(--stack-gap-medium, var(--stack-gap-sm, initial)))
-    );
-    margin-inline: var(
-      --stack-margin-inline-extraLarge,
-      var(
+      );
+      flex-direction: var(
+        --stack-direction-large,
+        var(--stack-direction-medium, var(--stack-direction-sm, column))
+      );
+      flex-grow: var(
+        --stack-flex-grow-large,
+        var(--stack-flex-grow-medium, var(--stack-flex-grow-sm, 0))
+      );
+      flex-shrink: var(
+        --stack-flex-shrink-large,
+        var(--stack-flex-shrink-medium, var(--stack-flex-shrink-sm, 1))
+      );
+      flex-wrap: var(
+        --stack-flex-wrap-large,
+        var(--stack-flex-wrap-medium, var(--stack-flex-wrap-sm, nowrap))
+      );
+      gap: var(--stack-gap-large, var(--stack-gap-medium, var(--stack-gap-sm, initial)));
+      justify-self: var(
+        --stack-justify-self-large,
+        var(--stack-justify-self-medium, var(--stack-justify-self-sm, initial))
+      );
+      left: var(--stack-left-large, var(--stack-left-medium, var(--stack-left-sm, auto)));
+      margin: var(
+        --stack-margin-large,
+        var(--stack-margin-medium, var(--stack-margin-sm, initial))
+      );
+      margin-block: var(
+        --stack-margin-block-large,
+        var(--stack-margin-block-medium, var(--stack-margin-block-sm, initial))
+      );
+      margin-bottom: var(
+        --stack-margin-bottom-large,
+        var(--stack-margin-bottom-medium, var(--stack-margin-bottom-sm, initial))
+      );
+      margin-inline: var(
         --stack-margin-inline-large,
         var(--stack-margin-inline-medium, var(--stack-margin-inline-sm, initial))
-      )
-    );
-    width: var(
-      --stack-width-extraLarge,
-      var(--stack-width-large, var(--stack-width-medium, var(--stack-width-sm, auto)))
-    );
+      );
+      margin-left: var(
+        --stack-margin-left-large,
+        var(--stack-margin-left-medium, var(--stack-margin-left-sm, initial))
+      );
+      margin-right: var(
+        --stack-margin-right-large,
+        var(--stack-margin-right-medium, var(--stack-margin-right-sm, initial))
+      );
+      margin-top: var(
+        --stack-margin-top-large,
+        var(--stack-margin-top-medium, var(--stack-margin-top-sm, initial))
+      );
+      min-width: var(
+        --stack-min-width-large,
+        var(--stack-min-width-medium, var(--stack-min-width-sm, 0))
+      );
+      order: var(--stack-order-large, var(--stack-order-medium, var(--stack-order-sm, 0)));
+      position: var(
+        --stack-position-large,
+        var(--stack-position-medium, var(--stack-position-sm, static))
+      );
+      right: var(--stack-right-large, var(--stack-right-medium, var(--stack-right-sm, auto)));
+      top: var(--stack-top-large, var(--stack-top-medium, var(--stack-top-sm, auto)));
+      width: var(--stack-width-large, var(--stack-width-medium, var(--stack-width-sm, auto)));
+    }
+  }
+  @media (min-width: 1440px) {
+    .stack {
+      align-self: var(
+        --stack-align-self-extraLarge,
+        var(
+          --stack-align-self-large,
+          var(--stack-align-self-medium, var(--stack-align-self-sm, initial))
+        )
+      );
+      bottom: var(
+        --stack-bottom-extraLarge,
+        var(--stack-bottom-large, var(--stack-bottom-medium, var(--stack-bottom-sm, auto)))
+      );
+      flex: var(
+        --stack-flex-extraLarge,
+        var(--stack-flex-large, var(--stack-flex-medium, var(--stack-flex-sm, initial)))
+      );
+      flex-basis: var(
+        --stack-flex-basis-extraLarge,
+        var(
+          --stack-flex-basis-large,
+          var(--stack-flex-basis-medium, var(--stack-flex-basis-sm, auto))
+        )
+      );
+      flex-direction: var(
+        --stack-direction-extraLarge,
+        var(
+          --stack-direction-large,
+          var(--stack-direction-medium, var(--stack-direction-sm, column))
+        )
+      );
+      flex-grow: var(
+        --stack-flex-grow-extraLarge,
+        var(--stack-flex-grow-large, var(--stack-flex-grow-medium, var(--stack-flex-grow-sm, 0)))
+      );
+      flex-shrink: var(
+        --stack-flex-shrink-extraLarge,
+        var(
+          --stack-flex-shrink-large,
+          var(--stack-flex-shrink-medium, var(--stack-flex-shrink-sm, 1))
+        )
+      );
+      flex-wrap: var(
+        --stack-flex-wrap-extraLarge,
+        var(
+          --stack-flex-wrap-large,
+          var(--stack-flex-wrap-medium, var(--stack-flex-wrap-sm, nowrap))
+        )
+      );
+      gap: var(
+        --stack-gap-extraLarge,
+        var(--stack-gap-large, var(--stack-gap-medium, var(--stack-gap-sm, initial)))
+      );
+      justify-self: var(
+        --stack-justify-self-extraLarge,
+        var(
+          --stack-justify-self-large,
+          var(--stack-justify-self-medium, var(--stack-justify-self-sm, initial))
+        )
+      );
+      left: var(
+        --stack-left-extraLarge,
+        var(--stack-left-large, var(--stack-left-medium, var(--stack-left-sm, auto)))
+      );
+      margin: var(
+        --stack-margin-extraLarge,
+        var(--stack-margin-large, var(--stack-margin-medium, var(--stack-margin-sm, initial)))
+      );
+      margin-block: var(
+        --stack-margin-block-extraLarge,
+        var(
+          --stack-margin-block-large,
+          var(--stack-margin-block-medium, var(--stack-margin-block-sm, initial))
+        )
+      );
+      margin-bottom: var(
+        --stack-margin-bottom-extraLarge,
+        var(
+          --stack-margin-bottom-large,
+          var(--stack-margin-bottom-medium, var(--stack-margin-bottom-sm, initial))
+        )
+      );
+      margin-inline: var(
+        --stack-margin-inline-extraLarge,
+        var(
+          --stack-margin-inline-large,
+          var(--stack-margin-inline-medium, var(--stack-margin-inline-sm, initial))
+        )
+      );
+      margin-left: var(
+        --stack-margin-left-extraLarge,
+        var(
+          --stack-margin-left-large,
+          var(--stack-margin-left-medium, var(--stack-margin-left-sm, initial))
+        )
+      );
+      margin-right: var(
+        --stack-margin-right-extraLarge,
+        var(
+          --stack-margin-right-large,
+          var(--stack-margin-right-medium, var(--stack-margin-right-sm, initial))
+        )
+      );
+      margin-top: var(
+        --stack-margin-top-extraLarge,
+        var(
+          --stack-margin-top-large,
+          var(--stack-margin-top-medium, var(--stack-margin-top-sm, initial))
+        )
+      );
+      min-width: var(
+        --stack-min-width-extraLarge,
+        var(--stack-min-width-large, var(--stack-min-width-medium, var(--stack-min-width-sm, 0)))
+      );
+      order: var(
+        --stack-order-extraLarge,
+        var(--stack-order-large, var(--stack-order-medium, var(--stack-order-sm, 0)))
+      );
+      position: var(
+        --stack-position-extraLarge,
+        var(--stack-position-large, var(--stack-position-medium, var(--stack-position-sm, static)))
+      );
+      right: var(
+        --stack-right-extraLarge,
+        var(--stack-right-large, var(--stack-right-medium, var(--stack-right-sm, auto)))
+      );
+      top: var(
+        --stack-top-extraLarge,
+        var(--stack-top-large, var(--stack-top-medium, var(--stack-top-sm, auto)))
+      );
+      width: var(
+        --stack-width-extraLarge,
+        var(--stack-width-large, var(--stack-width-medium, var(--stack-width-sm, auto)))
+      );
+    }
   }
 }
 

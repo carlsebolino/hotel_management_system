@@ -37,6 +37,32 @@ interface StackProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const responsiveKeys = ['small', 'medium', 'large', 'extraLarge'] as const;
+const responsiveSuffixes: Record<
+  (typeof responsiveKeys)[number],
+  'sm' | 'medium' | 'large' | 'extraLarge'
+> = {
+  small: 'sm',
+  medium: 'medium',
+  large: 'large',
+  extraLarge: 'extraLarge',
+};
+const lengthStyleNames = new Set([
+  'gap',
+  'flex-basis',
+  'margin',
+  'margin-block',
+  'margin-inline',
+  'margin-top',
+  'margin-right',
+  'margin-bottom',
+  'margin-left',
+  'width',
+  'min-width',
+  'top',
+  'right',
+  'bottom',
+  'left',
+]);
 
 function isResponsiveObject<T>(
   value: Responsive<T> | undefined,
@@ -44,8 +70,12 @@ function isResponsiveObject<T>(
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function toCssValue(value: FlexValue | CSSProperties[keyof CSSProperties] | undefined) {
+function toCssValue(
+  name: string,
+  value: FlexValue | CSSProperties[keyof CSSProperties] | undefined,
+) {
   if (typeof value === 'boolean') return value ? '1 1 0%' : '0 0 auto';
+  if (typeof value === 'number' && value !== 0 && lengthStyleNames.has(name)) return `${value}px`;
   return value;
 }
 
@@ -57,14 +87,14 @@ function applyResponsiveStyle<T extends FlexValue | CSSProperties[keyof CSSPrope
   if (value === undefined) return;
 
   if (!isResponsiveObject(value)) {
-    style[`--stack-${name}-sm`] = toCssValue(value);
+    style[`--stack-${name}-sm`] = toCssValue(name, value);
     return;
   }
 
   for (const key of responsiveKeys) {
     const responsiveValue = value[key];
     if (responsiveValue !== undefined)
-      style[`--stack-${name}-${key}`] = toCssValue(responsiveValue);
+      style[`--stack-${name}-${responsiveSuffixes[key]}`] = toCssValue(name, responsiveValue);
   }
 }
 
