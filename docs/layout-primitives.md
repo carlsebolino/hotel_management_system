@@ -43,6 +43,66 @@ A scalar `span={1}` means one active column at every breakpoint. A responsive
 object can target `small`, `medium`, `large`, and `extraLarge` while the CSS
 internally maps those keys to compact `sm`, `md`, `lg`, and `xl` variables.
 
+## Fitting text inside responsive columns
+
+The demo grid in `frontend/src/main.tsx` renders each numbered cell as a `Col`
+containing a `Stack` with the `.demo-column` class. The important detail is that
+text sizing is based on the column card itself, not on the viewport:
+
+```tsx
+<Row className="grid-demo">
+  <Col span={1}>
+    <Stack className="demo-column">
+      <span>Column</span>
+      <strong>1</strong>
+      <small>SM / 4</small>
+    </Stack>
+  </Col>
+</Row>
+```
+
+```css
+.demo-column {
+  container-type: inline-size;
+  min-width: 0;
+  overflow: hidden;
+  padding: clamp(0.5rem, 8cqi, 1rem);
+}
+
+.demo-column span,
+.demo-column small {
+  font-size: clamp(0.52rem, 10cqi, 0.72rem);
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.demo-column strong {
+  font-size: clamp(1.75rem, 45cqi, 5rem);
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+```
+
+How to read that implementation:
+
+1. `container-type: inline-size` turns each `.demo-column` into a query
+   container whose inline width can drive descendants and its own styles.
+2. `cqi` means "1% of the query container's inline size." For example,
+   `10cqi` is 10% of the current column card width.
+3. `clamp(min, preferred, max)` keeps typography within safe bounds: the text
+   shrinks in narrow one-column cards, grows in wider cards, and never becomes
+   unreadably tiny or excessively large.
+4. `min-width: 0`, `max-inline-size: 100%`, `overflow-wrap: anywhere`, and
+   `text-wrap: balance` prevent long labels from forcing the column wider than
+   the grid cell.
+5. The `@supports not (font-size: 1cqi)` block in `styles.css` keeps a
+   viewport-based fallback for browsers without container query unit support.
+
+Use this pattern when content needs to fit the space assigned by `Col`. Use
+regular viewport units such as `vw` when the text should scale with the whole
+page instead of with an individual card.
+
 ## `Stack`
 
 `Stack` renders a `div` with a column flex direction by default. Responsive prop

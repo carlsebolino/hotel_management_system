@@ -37,7 +37,9 @@ turning the other into a collection of special cases.
    the directory layout, request/data flow, API conventions, database workflow,
    and the recommended way to make a change.
 3. [Frontend layout primitives](layout-primitives.md) — compose responsive
-   dashboard pages with Bootstrap-like `Container`, `Row`, `Col`, and `Stack` primitives.
+   dashboard pages with Bootstrap-like `Container`, `Row`, `Col`, and `Stack`
+   primitives, including the demo pattern for fitting text inside responsive
+   columns.
 4. [React concepts used in this project](react-concepts.md) — understand the
    components, props, state, Effects, lists, conditional rendering, events, and
    accessibility patterns in the current frontend.
