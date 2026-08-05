@@ -6,7 +6,24 @@ type Responsive<T> = T | Partial<Record<'small' | 'medium' | 'large' | 'extraLar
 type FlexValue = CSSProperties['flex'] | number | boolean;
 type SelfAlignment = CSSProperties['alignSelf'] | CSSProperties['justifySelf'];
 
-type StackStyle = CSSProperties & Record<`--stack-${string}`, string | number | undefined>;
+type LayoutStyle = CSSProperties & Record<`--${string}`, string | number | undefined>;
+type ColumnSpan = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 'auto';
+
+interface ContainerProps extends HTMLAttributes<HTMLDivElement> {
+  children: ReactNode;
+  fluid?: boolean;
+}
+
+interface RowProps extends HTMLAttributes<HTMLDivElement> {
+  children: ReactNode;
+  gap?: Responsive<CSSProperties['gap']>;
+}
+
+interface ColProps extends HTMLAttributes<HTMLDivElement> {
+  children: ReactNode;
+  span?: Responsive<ColumnSpan>;
+  order?: Responsive<number>;
+}
 
 interface StackProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
@@ -77,28 +94,63 @@ function toCssValue(
 }
 
 function applyResponsiveStyle<T extends FlexValue | CSSProperties[keyof CSSProperties]>(
-  style: StackStyle,
+  style: LayoutStyle,
+  prefix: string,
   name: string,
   value: Responsive<T> | undefined,
 ) {
   if (value === undefined) return;
 
   if (!isResponsiveObject(value)) {
-    style[`--stack-${name}-sm`] = toCssValue(name, value);
+    style[`--${prefix}-${name}-sm`] = toCssValue(name, value);
     return;
   }
 
   for (const key of responsiveKeys) {
     const responsiveValue = value[key];
     if (responsiveValue !== undefined)
-      style[`--stack-${name}-${responsiveSuffixes[key]}`] = toCssValue(name, responsiveValue);
+      style[`--${prefix}-${name}-${responsiveSuffixes[key]}`] = toCssValue(name, responsiveValue);
   }
 }
 
 /**
- * Stack is the only exported layout primitive. It accepts standard div events plus
- * responsive style props from the referenced design-system tables.
+ * Layout helpers mirror Bootstrap's container/row/column ergonomics while
+ * Stack covers one-dimensional flex composition and responsive style props.
  */
+export function Container({ children, className, fluid = false, ...props }: ContainerProps) {
+  return (
+    <div
+      className={cn('layout-container', fluid && 'layout-container-fluid', className)}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function Row({ children, className, gap, style, ...props }: RowProps) {
+  const rowStyle: LayoutStyle = { ...style };
+  applyResponsiveStyle(rowStyle, 'row', 'gap', gap);
+
+  return (
+    <div className={cn('layout-row', className)} style={rowStyle} {...props}>
+      {children}
+    </div>
+  );
+}
+
+export function Col({ children, className, order, span, style, ...props }: ColProps) {
+  const colStyle: LayoutStyle = { ...style };
+  applyResponsiveStyle(colStyle, 'col', 'span', span);
+  applyResponsiveStyle(colStyle, 'col', 'order', order);
+
+  return (
+    <div className={cn('layout-col', className)} style={colStyle} {...props}>
+      {children}
+    </div>
+  );
+}
+
 export function Stack({
   alignSelf,
   bottom,
@@ -129,32 +181,32 @@ export function Stack({
   width,
   ...props
 }: StackProps) {
-  const stackStyle: StackStyle = { ...style };
+  const stackStyle: LayoutStyle = { ...style };
 
-  applyResponsiveStyle(stackStyle, 'direction', direction);
-  applyResponsiveStyle(stackStyle, 'flex', flex);
-  applyResponsiveStyle(stackStyle, 'flex-wrap', flexWrap);
-  applyResponsiveStyle(stackStyle, 'gap', gap);
-  applyResponsiveStyle(stackStyle, 'flex-grow', flexGrow);
-  applyResponsiveStyle(stackStyle, 'flex-shrink', flexShrink);
-  applyResponsiveStyle(stackStyle, 'flex-basis', flexBasis);
-  applyResponsiveStyle(stackStyle, 'align-self', alignSelf);
-  applyResponsiveStyle(stackStyle, 'justify-self', justifySelf);
-  applyResponsiveStyle(stackStyle, 'order', order);
-  applyResponsiveStyle(stackStyle, 'margin', margin);
-  applyResponsiveStyle(stackStyle, 'margin-block', marginBlock);
-  applyResponsiveStyle(stackStyle, 'margin-inline', marginInline);
-  applyResponsiveStyle(stackStyle, 'margin-top', marginTop);
-  applyResponsiveStyle(stackStyle, 'margin-right', marginRight);
-  applyResponsiveStyle(stackStyle, 'margin-bottom', marginBottom);
-  applyResponsiveStyle(stackStyle, 'margin-left', marginLeft);
-  applyResponsiveStyle(stackStyle, 'width', width);
-  applyResponsiveStyle(stackStyle, 'min-width', minWidth);
-  applyResponsiveStyle(stackStyle, 'position', position);
-  applyResponsiveStyle(stackStyle, 'top', top);
-  applyResponsiveStyle(stackStyle, 'right', right);
-  applyResponsiveStyle(stackStyle, 'bottom', bottom);
-  applyResponsiveStyle(stackStyle, 'left', left);
+  applyResponsiveStyle(stackStyle, 'stack', 'direction', direction);
+  applyResponsiveStyle(stackStyle, 'stack', 'flex', flex);
+  applyResponsiveStyle(stackStyle, 'stack', 'flex-wrap', flexWrap);
+  applyResponsiveStyle(stackStyle, 'stack', 'gap', gap);
+  applyResponsiveStyle(stackStyle, 'stack', 'flex-grow', flexGrow);
+  applyResponsiveStyle(stackStyle, 'stack', 'flex-shrink', flexShrink);
+  applyResponsiveStyle(stackStyle, 'stack', 'flex-basis', flexBasis);
+  applyResponsiveStyle(stackStyle, 'stack', 'align-self', alignSelf);
+  applyResponsiveStyle(stackStyle, 'stack', 'justify-self', justifySelf);
+  applyResponsiveStyle(stackStyle, 'stack', 'order', order);
+  applyResponsiveStyle(stackStyle, 'stack', 'margin', margin);
+  applyResponsiveStyle(stackStyle, 'stack', 'margin-block', marginBlock);
+  applyResponsiveStyle(stackStyle, 'stack', 'margin-inline', marginInline);
+  applyResponsiveStyle(stackStyle, 'stack', 'margin-top', marginTop);
+  applyResponsiveStyle(stackStyle, 'stack', 'margin-right', marginRight);
+  applyResponsiveStyle(stackStyle, 'stack', 'margin-bottom', marginBottom);
+  applyResponsiveStyle(stackStyle, 'stack', 'margin-left', marginLeft);
+  applyResponsiveStyle(stackStyle, 'stack', 'width', width);
+  applyResponsiveStyle(stackStyle, 'stack', 'min-width', minWidth);
+  applyResponsiveStyle(stackStyle, 'stack', 'position', position);
+  applyResponsiveStyle(stackStyle, 'stack', 'top', top);
+  applyResponsiveStyle(stackStyle, 'stack', 'right', right);
+  applyResponsiveStyle(stackStyle, 'stack', 'bottom', bottom);
+  applyResponsiveStyle(stackStyle, 'stack', 'left', left);
 
   return (
     <div className={cn('stack', className)} style={stackStyle} {...props}>

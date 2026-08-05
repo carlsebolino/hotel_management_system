@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { fetchUsers, type User } from './api/client';
-import { Stack } from './components/layouts';
+import { Col, Container, Row, Stack } from './components/layouts';
 import { UsersTable } from './components/UsersTable';
 import './styles.css';
 
@@ -15,13 +15,6 @@ type Breakpoint = {
   margin: string;
   colorClass: string;
 };
-
-const columnFlexBasis = {
-  small: 'calc((100% - 48px) / 4)',
-  medium: 'calc((100% - 112px) / 8)',
-  large: 'calc((100% - 176px) / 12)',
-  extraLarge: 'calc((100% - 176px) / 12)',
-} as const;
 
 const breakpoints: [Breakpoint, Breakpoint, Breakpoint, Breakpoint] = [
   {
@@ -111,17 +104,14 @@ function App() {
 
   return (
     <main className={`app-shell ${activeBreakpoint.colorClass}`}>
-      <Stack
-        className="page-frame"
-        marginInline={{ small: 16, medium: 24, large: 32, extraLarge: 'auto' }}
-      >
+      <Container className="page-frame">
         <Stack className="hero" marginBlock="32px">
-          <p className="eyebrow">Stack-only design system demo</p>
+          <p className="eyebrow">Bootstrap-like layout system demo</p>
           <h1>Responsive columns you can see change.</h1>
           <p className="intro">
-            This page removes the other layout primitives and keeps the Stack component. The grid
-            follows the attached system: 4 columns on small screens, 8 on medium screens, and 12 on
-            large and extra-large screens.
+            This page uses Bootstrap-style Container, Row, and Col helpers backed by the attached
+            breakpoint rules: 4 columns on small screens, 8 on medium screens, and 12 on large and
+            extra-large screens.
           </p>
         </Stack>
 
@@ -134,30 +124,22 @@ function App() {
           <span>{activeBreakpoint.columns} active columns</span>
         </Stack>
 
-        <Stack
+        <Row
           className="grid-demo"
-          direction="row"
-          flexWrap="wrap"
-          gap="16px"
           aria-label={`${activeBreakpoint.columns} column responsive grid`}
         >
           {columns.map((column) => (
-            <Stack
-              key={column}
-              className="demo-column"
-              flex="0 0 auto"
-              flexBasis={columnFlexBasis}
-              flexShrink={0}
-              width={columnFlexBasis}
-            >
-              <span>Column</span>
-              <strong>{column}</strong>
-              <small>
-                {activeBreakpoint.short} / {activeBreakpoint.columns}
-              </small>
-            </Stack>
+            <Col key={column} span={1}>
+              <Stack className="demo-column">
+                <span>Column</span>
+                <strong>{column}</strong>
+                <small>
+                  {activeBreakpoint.short} / {activeBreakpoint.columns}
+                </small>
+              </Stack>
+            </Col>
           ))}
-        </Stack>
+        </Row>
 
         <Stack className="details-card users-card" marginBlock="32px">
           <Stack className="section-heading">
@@ -201,7 +183,7 @@ function App() {
             ))}
           </div>
         </Stack>
-      </Stack>
+      </Container>
     </main>
   );
 }

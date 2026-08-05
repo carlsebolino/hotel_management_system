@@ -5,6 +5,18 @@
 }
 
 :root {
+  --layout-gutter: 16px;
+  --layout-columns-sm: 4;
+  --layout-columns-md: 8;
+  --layout-columns-lg: 12;
+  --layout-columns-xl: 12;
+  --layout-margin-sm: 16px;
+  --layout-margin-md: 24px;
+  --layout-margin-lg: 32px;
+  --layout-container-max: 90rem;
+}
+
+:root {
   --page-bg: #f7f1ed;
   --active-color: #8b5cf6;
   --active-color-dark: #4c1d95;
@@ -20,6 +32,48 @@ body {
 }
 
 @layer components {
+  :where(.layout-container) {
+    --layout-columns: var(--layout-columns-sm);
+    inline-size: 100%;
+    margin-inline: auto;
+    max-inline-size: var(--layout-container-max);
+    padding-inline: var(--layout-margin-sm);
+  }
+
+  :where(.layout-container-fluid) {
+    max-inline-size: none;
+  }
+
+  :where(.layout-row) {
+    --layout-columns: var(--layout-columns-sm);
+    --row-gap-sm: var(--layout-gutter);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--row-gap-sm);
+  }
+
+  :where(.layout-col) {
+    --col-span-sm: auto;
+    min-inline-size: 0;
+    order: var(--col-order-sm, 0);
+  }
+
+  :where(.layout-col) {
+    flex: 1 0 0%;
+  }
+
+  :where(.layout-col[style*='--col-span-sm']) {
+    flex: 0 0
+      calc(
+        (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-sm) /
+          var(--layout-columns) + (var(--col-span-sm) - 1) * var(--layout-gutter)
+      );
+    max-inline-size: calc(
+      (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-sm) /
+        var(--layout-columns) + (var(--col-span-sm) - 1) * var(--layout-gutter)
+    );
+  }
+
   :where(.stack) {
     display: flex;
     align-self: var(--stack-align-self-sm, initial);
@@ -46,6 +100,96 @@ body {
     right: var(--stack-right-sm, auto);
     top: var(--stack-top-sm, auto);
     width: var(--stack-width-sm, auto);
+  }
+
+  @media (min-width: 768px) {
+    :where(.layout-container, .layout-row) {
+      --layout-columns: var(--layout-columns-md);
+    }
+
+    :where(.layout-container) {
+      padding-inline: var(--layout-margin-md);
+    }
+
+    :where(.layout-row) {
+      gap: var(--row-gap-md, var(--row-gap-sm));
+    }
+
+    :where(.layout-col) {
+      order: var(--col-order-md, var(--col-order-sm, 0));
+    }
+
+    :where(.layout-col[style*='--col-span-md']) {
+      flex: 0 0
+        calc(
+          (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-md) /
+            var(--layout-columns) + (var(--col-span-md) - 1) * var(--layout-gutter)
+        );
+      max-inline-size: calc(
+        (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-md) /
+          var(--layout-columns) + (var(--col-span-md) - 1) * var(--layout-gutter)
+      );
+    }
+  }
+
+  @media (min-width: 1024px) {
+    :where(.layout-container, .layout-row) {
+      --layout-columns: var(--layout-columns-lg);
+    }
+
+    :where(.layout-container) {
+      padding-inline: var(--layout-margin-lg);
+    }
+
+    :where(.layout-row) {
+      gap: var(--row-gap-lg, var(--row-gap-md, var(--row-gap-sm)));
+    }
+
+    :where(.layout-col) {
+      order: var(--col-order-lg, var(--col-order-md, var(--col-order-sm, 0)));
+    }
+
+    :where(.layout-col[style*='--col-span-lg']) {
+      flex: 0 0
+        calc(
+          (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-lg) /
+            var(--layout-columns) + (var(--col-span-lg) - 1) * var(--layout-gutter)
+        );
+      max-inline-size: calc(
+        (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-lg) /
+          var(--layout-columns) + (var(--col-span-lg) - 1) * var(--layout-gutter)
+      );
+    }
+  }
+
+  @media (min-width: 1440px) {
+    :where(.layout-container, .layout-row) {
+      --layout-columns: var(--layout-columns-xl);
+    }
+
+    :where(.layout-container) {
+      max-inline-size: none;
+    }
+
+    :where(.layout-row) {
+      gap: var(--row-gap-xl, var(--row-gap-lg, var(--row-gap-md, var(--row-gap-sm))));
+    }
+
+    :where(.layout-col) {
+      order: var(--col-order-xl, var(--col-order-lg, var(--col-order-md, var(--col-order-sm, 0))));
+    }
+
+    :where(.layout-col[style*='--col-span-xl']) {
+      flex: 0 0
+        calc(
+          (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-xl) /
+            var(--layout-columns) + (var(--col-span-xl) - 1) * var(--layout-gutter)
+        );
+      max-inline-size: calc(
+        (100% - ((var(--layout-columns) - 1) * var(--layout-gutter))) * var(--col-span-xl) /
+          var(--layout-columns) + (var(--col-span-xl) - 1) * var(--layout-gutter)
+      );
+    }
   }
 
   @media (min-width: 768px) {
