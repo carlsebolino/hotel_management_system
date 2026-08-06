@@ -1,4 +1,4 @@
-import postcss, { type AtRule, type Declaration, type Rule } from 'postcss';
+import postcss, { type AtRule, type Declaration, type Root, type Rule } from 'postcss';
 import { describe, expect, it } from 'vitest';
 
 import stylesheet from './styles.css?raw';
@@ -30,62 +30,117 @@ function appliesAt(rule: Rule, viewport: number) {
   });
 }
 
-function selectorSpecificity(selector: string) {
-  const withoutWhere = selector.replace(/:where\([^)]*\)/g, '');
-  const ids = withoutWhere.match(/#[\w-]+/g)?.length ?? 0;
-  const classes = withoutWhere.match(/\.[\w-]+|\[[^\]]+\]|:(?!:)[\w-]+/g)?.length ?? 0;
-  const elements = withoutWhere.match(/(^|[\s>+~,(])(?:[a-z][\w-]*|::[\w-]+)/gi)?.length ?? 0;
-  return ids * 100 + classes * 10 + elements;
+type Specificity = readonly [ids: number, classes: number, types: number];
+
+function selectorSpecificity(selector: string): Specificity {
+  // :where() and its arguments deliberately contribute no specificity.
+  const withoutWhere = selector.replace(/:where\((?:[^()]|\([^()]*\))*\)/g, '');
+  return [
+    withoutWhere.match(/#[\w-]+/g)?.length ?? 0,
+    withoutWhere.match(/\.[\w-]+|\[[^\]]+\]|:(?!:)[\w-]+(?:\([^)]*\))?/g)?.length ?? 0,
+    withoutWhere.match(/(^|[\s>+~])(?:[a-z][\w-]*|::[\w-]+)/gi)?.length ?? 0,
+  ];
 }
 
-function selectorMatchesContract(ruleSelector: string, selector: string) {
-  const combinedGridSelector = ':where(.layout-container, .layout-row)';
-  const target = compact(selector);
-  const plainTarget = target.match(/^:where\((.+)\)$/)?.[1];
-
-  return (
-    ruleSelector === target ||
-    ruleSelector === plainTarget ||
-    (ruleSelector === combinedGridSelector &&
-      [':where(.layout-container)', ':where(.layout-row)'].includes(target))
-  );
+function compareSpecificity(left: Specificity, right: Specificity) {
+  return left[0] - right[0] || left[1] - right[1] || left[2] - right[2];
 }
 
-function declarations(selector: string, property: string, viewport = 0) {
-  const matches: Array<{ declaration: Declaration; specificity: number; order: number }> = [];
-  let order = 0;
+function rightmostCompound(selector: string) {
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < selector.length; index++) {
+    const character = selector[index];
+    if (character === '(' || character === '[') depth++;
+    if (character === ')' || character === ']') depth--;
+    if (depth === 0 && character && (/[>+~]/.test(character) || /\s/.test(character))) {
+      start = index + 1;
+    }
+  }
+  return selector.slice(start);
+}
 
-  css.walkRules((rule) => {
-    const ruleSelector = compact(rule.selector);
-    if (!selectorMatchesContract(ruleSelector, selector) || !appliesAt(rule, viewport)) return;
-    rule.each((node) => {
-      if (node.type === 'decl' && node.prop === property) {
-        matches.push({
-          declaration: node,
-          specificity: selectorSpecificity(ruleSelector),
-          order: order++,
+function contractClass(selector: string) {
+  return selector.match(/\.layout-(?:container-fluid|container|row|col)(?![\w-])/)?.[0];
+}
+
+function createCascadeInspector(root: Root) {
+  const layerOrder: string[] = [];
+  root.walkAtRules('layer', (atRule) => {
+    for (const name of atRule.params.split(',').map((part) => compact(part))) {
+      if (name && !layerOrder.includes(name)) layerOrder.push(name);
+    }
+  });
+
+  function layerName(declaration: Declaration) {
+    for (let parent = declaration.parent; parent; parent = parent.parent) {
+      if (parent.type === 'atrule' && parent.name === 'layer') return compact(parent.params);
+    }
+    return undefined;
+  }
+
+  function declarations(selector: string, property: string, viewport = 0) {
+    const targetClass = contractClass(selector);
+    const matches: Array<{
+      declaration: Declaration;
+      specificity: Specificity;
+      layer?: string;
+      order: number;
+    }> = [];
+    let order = 0;
+
+    root.walkRules((rule) => {
+      if (!appliesAt(rule, viewport)) return;
+      // PostCSS splits selector lists without splitting commas inside :where(), etc.
+      for (const branch of rule.selectors) {
+        const compound = rightmostCompound(branch);
+        if (
+          !targetClass ||
+          !new RegExp(`${targetClass.replace('.', '\\.')}(?![\\w-])`).test(compound)
+        ) {
+          continue;
+        }
+        rule.each((node) => {
+          if (node.type === 'decl' && node.prop === property) {
+            matches.push({
+              declaration: node,
+              specificity: selectorSpecificity(branch),
+              layer: layerName(node),
+              order: order++,
+            });
+          }
         });
       }
     });
-  });
+    return matches;
+  }
 
-  return matches;
+  function finalDeclaration(selector: string, property: string, viewport = 0) {
+    const values = declarations(selector, property, viewport);
+    expect(values, `Expected ${selector} to declare ${property} at ${viewport}px`).not.toHaveLength(
+      0,
+    );
+    const winner = values.sort((left, right) => {
+      const important = Number(left.declaration.important) - Number(right.declaration.important);
+      if (important) return important;
+      const unlayered = layerOrder.length;
+      const leftLayer = left.layer === undefined ? unlayered : layerOrder.indexOf(left.layer);
+      const rightLayer = right.layer === undefined ? unlayered : layerOrder.indexOf(right.layer);
+      const layer = left.declaration.important ? rightLayer - leftLayer : leftLayer - rightLayer;
+      return (
+        layer || compareSpecificity(left.specificity, right.specificity) || left.order - right.order
+      );
+    }).at(-1);
+    return compact(winner!.declaration.value);
+  }
+
+  return { declarations, finalDeclaration };
 }
 
-function finalDeclaration(selector: string, property: string, viewport = 0) {
-  const values = declarations(selector, property, viewport);
-  expect(values, `Expected ${selector} to declare ${property} at ${viewport}px`).not.toHaveLength(
-    0,
-  );
-  const winner = values
-    .sort(
-      (left, right) =>
-        Number(left.declaration.important) - Number(right.declaration.important) ||
-        left.specificity - right.specificity ||
-        left.order - right.order,
-    )
-    .at(-1);
-  return compact(winner!.declaration.value);
+const { declarations, finalDeclaration } = createCascadeInspector(css);
+
+function inspectSynthetic(source: string) {
+  return createCascadeInspector(postcss.parse(source));
 }
 
 function spanFormula(span: string) {
@@ -228,5 +283,43 @@ describe('responsive grid CSS contract', () => {
     expect(finalDeclaration(':where(.layout-container)', 'max-inline-size', 1440)).toBe(
       'var(--layout-container-max)',
     );
+  });
+});
+
+describe('cascade inspector regressions', () => {
+  it.each([
+    ['.layout-row { display: grid; }'],
+    ['.page .layout-row { display: grid; }'],
+    ['.layout-row.featured { display: grid; }'],
+    ['.layout-row, .other { display: grid; }'],
+  ])('finds contract rules in %s', (source) => {
+    expect(inspectSynthetic(source).finalDeclaration(':where(.layout-row)', 'display')).toBe('grid');
+  });
+
+  it('compares specificity components rather than encoding them as decimal digits', () => {
+    const inspector = inspectSynthetic(`
+      #app .layout-row { display: grid; }
+      .a .b .c .d .e .f .g .h .i .j .k .layout-row { display: flex; }
+    `);
+    expect(inspector.finalDeclaration(':where(.layout-row)', 'display')).toBe('grid');
+  });
+
+  it('applies normal and important cascade-layer precedence', () => {
+    const inspector = inspectSynthetic(`
+      @layer base, overrides;
+      @layer base {
+        .layout-row { display: block; color: red !important; }
+      }
+      @layer overrides {
+        .layout-row { display: grid; color: blue !important; }
+      }
+    `);
+    expect(inspector.finalDeclaration(':where(.layout-row)', 'display')).toBe('grid');
+    expect(inspector.finalDeclaration(':where(.layout-row)', 'color')).toBe('red');
+  });
+
+  it('lets a later repeated declaration in the same rule win', () => {
+    const inspector = inspectSynthetic('.layout-row { display: flex; display: grid; }');
+    expect(inspector.finalDeclaration(':where(.layout-row)', 'display')).toBe('grid');
   });
 });
