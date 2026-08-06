@@ -43,6 +43,7 @@ stages:
                 npm install
               fi
               npm run lint
+              npm test
               npm run build
             displayName: Install private packages and build TypeScript
 

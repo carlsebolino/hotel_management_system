@@ -20,6 +20,7 @@ lint:
 
 test:
 	python -m unittest discover -s tests
+	cd frontend && npm test
 
 build:
 	cd frontend && npm run build

@@ -51,6 +51,12 @@ npm run dev
 
 Copy `frontend/.env.example` to `frontend/.env` to point the Vite app at a different Flask API URL. If `VITE_API_BASE_URL` is not set, the frontend uses `/api/v1`, which supports production deployments that route the React app and Flask API through the same origin.
 
+The client uses React Router for `/`, `/users`, and `/about`. Add pages and
+navigation in `frontend/src/App.tsx`; see the [frontend pages and routing
+guide](docs/frontend-pages-and-routing.md). Production hosts must serve Vite's
+`index.html` for unknown non-API URLs while preserving Flask routing for
+`/api/*`, so bookmarked routes and browser refreshes work.
+
 ## Development tooling and code formatting
 
 The repository includes shared formatter and linter configuration so the same checks can run on a colleague's laptop, in an editor, or in CI.
