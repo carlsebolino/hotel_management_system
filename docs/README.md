@@ -40,12 +40,15 @@ turning the other into a collection of special cases.
    dashboard pages with Bootstrap-like `Container`, `Row`, `Col`, and `Stack`
    primitives, including the demo pattern for fitting text inside responsive
    columns.
-4. [React concepts used in this project](react-concepts.md) — understand the
+4. [Grid and breakpoint test coverage](grid-breakpoint-test-coverage.md) — run
+   the focused grid suites and understand the component, CSS cascade, and
+   breakpoint-boundary assertions.
+5. [React concepts used in this project](react-concepts.md) — understand the
    components, props, state, Effects, lists, conditional rendering, events, and
    accessibility patterns in the current frontend.
-5. [Frontend pages and routing](frontend-pages-and-routing.md) — add page
+6. [Frontend pages and routing](frontend-pages-and-routing.md) — add page
    components, register routes and navigation, and configure SPA fallback.
-6. [Private npm packages and Azure App Service deployment](azure-artifacts-app-service-deployment.md)
+7. [Private npm packages and Azure App Service deployment](azure-artifacts-app-service-deployment.md)
    — configure Azure Artifacts, build the frontend, and deploy an App Service slot.
 
 ## Quick start
