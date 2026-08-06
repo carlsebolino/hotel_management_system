@@ -1,171 +1,191 @@
+import postcss, { type AtRule, type Rule } from 'postcss';
 import { describe, expect, it } from 'vitest';
 
 import stylesheet from './styles.css?raw';
 
-type CssBlock = { prelude: string; body: string };
+const css = postcss.parse(stylesheet);
+const breakpoints = [768, 1024, 1440] as const;
 
-function normalize(value: string) {
+function compact(value: string) {
   return value.replace(/\s+/g, ' ').trim();
 }
 
-function activeCss(source: string) {
-  return source.replace(/\/\*[\s\S]*?\*\//g, '');
+function mediaAncestors(rule: Rule) {
+  const media: AtRule[] = [];
+  for (let parent = rule.parent; parent; parent = parent.parent) {
+    if (parent.type === 'atrule' && parent.name === 'media') media.push(parent);
+  }
+  return media;
 }
 
-function immediateBlocks(source: string): CssBlock[] {
-  const css = activeCss(source);
-  const blocks: CssBlock[] = [];
-  let statementStart = 0;
+function minimumWidth(media: AtRule) {
+  const match = media.params.match(/^\(min-width:\s*(\d+)px\)$/);
+  return match ? Number(match[1]) : undefined;
+}
 
-  for (let index = 0; index < css.length; index += 1) {
-    if (css[index] === ';') {
-      statementStart = index + 1;
-      continue;
-    }
-    if (css[index] !== '{') continue;
+function appliesAt(rule: Rule, viewport: number) {
+  return mediaAncestors(rule).every((media) => {
+    const width = minimumWidth(media);
+    return width !== undefined && viewport >= width;
+  });
+}
 
-    const openingBrace = index;
-    let depth = 1;
-    while (depth > 0 && ++index < css.length) {
-      if (css[index] === '{') depth += 1;
-      if (css[index] === '}') depth -= 1;
-    }
-    if (depth !== 0) throw new Error('Expected CSS block to close');
+function declarations(selector: string, property: string, viewport = 0) {
+  const values: string[] = [];
+  const combinedGridSelector = ':where(.layout-container, .layout-row)';
 
-    blocks.push({
-      prelude: normalize(css.slice(statementStart, openingBrace)),
-      body: css.slice(openingBrace + 1, index),
+  css.walkRules((rule) => {
+    const ruleSelector = compact(rule.selector);
+    const selectorMatches =
+      ruleSelector === compact(selector) ||
+      (ruleSelector === combinedGridSelector &&
+        [':where(.layout-container)', ':where(.layout-row)'].includes(selector));
+    if (!selectorMatches || !appliesAt(rule, viewport)) return;
+    rule.each((node) => {
+      if (node.type === 'decl' && node.prop === property) values.push(compact(node.value));
     });
-    statementStart = index + 1;
-  }
+  });
 
-  return blocks;
+  return values;
 }
 
-function blocksWithPrelude(source: string, prelude: string): string[] {
-  const expected = normalize(prelude);
-  const matches: string[] = [];
-
-  for (const block of immediateBlocks(source)) {
-    if (block.prelude === expected) matches.push(block.body);
-    if (block.prelude.startsWith('@') && !block.prelude.startsWith('@media')) {
-      matches.push(...blocksWithPrelude(block.body, expected));
-    }
-  }
-
-  return matches;
-}
-
-function requiredBlocks(source: string, prelude: string) {
-  const blocks = blocksWithPrelude(source, prelude);
-  expect(blocks, `Expected to find active rule ${prelude}`).not.toHaveLength(0);
-  return blocks;
-}
-
-function baseCss(source: string): string {
-  return immediateBlocks(source)
-    .flatMap((block) => {
-      if (block.prelude.startsWith('@media')) return [];
-      if (block.prelude.startsWith('@')) return [baseCss(block.body)];
-      return [`${block.prelude} { ${block.body} }`];
-    })
-    .join('\n');
-}
-
-function lastDeclaration(source: string, selector: string, property: string) {
-  const declarations = requiredBlocks(source, selector).flatMap((block) =>
-    Array.from(block.matchAll(new RegExp(`(?:^|;)\\s*${property}\\s*:\\s*([^;]+)`, 'g')), (match) =>
-      match[1].trim(),
-    ),
+function finalDeclaration(selector: string, property: string, viewport = 0) {
+  const values = declarations(selector, property, viewport);
+  expect(values, `Expected ${selector} to declare ${property} at ${viewport}px`).not.toHaveLength(
+    0,
   );
-
-  expect(declarations, `Expected ${selector} to declare ${property}`).not.toHaveLength(0);
-  return declarations.at(-1);
+  return values.at(-1);
 }
 
-function expectSpanSizing(source: string, span: string) {
+function spanFormula(span: string) {
+  return compact(`calc(
+    (100% - ((var(--layout-columns) - 1) * var(--row-gap))) * var(${span}) /
+      var(--layout-columns) + (var(${span}) - 1) * var(--row-gap)
+  )`);
+}
+
+function expectSpanSizing(span: string, viewport: number) {
   const selector = `:where(.layout-col[style*='${span}'])`;
-  expect(lastDeclaration(source, selector, 'flex')).toContain(`var(${span})`);
-  expect(lastDeclaration(source, selector, 'max-inline-size')).toContain(`var(${span})`);
+  const formula = spanFormula(span);
+  expect(finalDeclaration(selector, 'flex', viewport)).toBe(`0 0 ${formula}`);
+  expect(finalDeclaration(selector, 'max-inline-size', viewport)).toBe(formula);
 }
 
-describe('CSS rule inspection', () => {
-  it('matches complete rule preludes and ignores comments', () => {
-    const css = `
-      /* @media (min-width: 768px) { .example {} } */
-      @media (min-width: 768px) and (orientation: landscape) { .example {} }
-    `;
-    expect(blocksWithPrelude(css, '@media (min-width: 768px)')).toEqual([]);
+describe('responsive grid CSS contract', () => {
+  it('defines every shared grid token', () => {
+    const tokens = {
+      '--layout-gutter': '16px',
+      '--layout-columns-sm': '4',
+      '--layout-columns-md': '8',
+      '--layout-columns-lg': '12',
+      '--layout-columns-xl': '12',
+      '--layout-margin-sm': '16px',
+      '--layout-margin-md': '24px',
+      '--layout-margin-lg': '32px',
+      '--layout-container-max': '1440px',
+    };
+
+    for (const [property, value] of Object.entries(tokens)) {
+      expect(finalDeclaration(':root', property)).toBe(value);
+    }
   });
 
-  it('uses the final repeated declaration, including within one rule', () => {
-    const css = '.example { color: green; } .example { color: blue; color: red; }';
-    expect(lastDeclaration(css, '.example', 'color')).toBe('red');
-  });
-
-  it('includes unconditional rules that follow media queries in base CSS', () => {
-    const css = '@media (min-width: 1px) { .example { color: red; } } .example { color: green; }';
-    expect(lastDeclaration(baseCss(css), '.example', 'color')).toBe('green');
-  });
-});
-
-describe('responsive grid contract', () => {
-  it('keeps the shared gutter, column counts, margins, and container cap', () => {
-    expect(lastDeclaration(stylesheet, ':root', '--layout-gutter')).toBe('16px');
-    expect(lastDeclaration(stylesheet, ':root', '--layout-columns-sm')).toBe('4');
-    expect(lastDeclaration(stylesheet, ':root', '--layout-columns-md')).toBe('8');
-    expect(lastDeclaration(stylesheet, ':root', '--layout-columns-lg')).toBe('12');
-    expect(lastDeclaration(stylesheet, ':root', '--layout-columns-xl')).toBe('12');
-    expect(lastDeclaration(stylesheet, ':root', '--layout-margin-sm')).toBe('16px');
-    expect(lastDeclaration(stylesheet, ':root', '--layout-margin-md')).toBe('24px');
-    expect(lastDeclaration(stylesheet, ':root', '--layout-margin-lg')).toBe('32px');
-    expect(lastDeclaration(stylesheet, ':root', '--layout-container-max')).toBe('1440px');
+  it('keeps the base container, row, and column mechanics intact', () => {
+    expect(finalDeclaration(':where(.layout-container)', 'inline-size')).toBe('100%');
+    expect(finalDeclaration(':where(.layout-container)', 'margin-inline')).toBe('auto');
+    expect(finalDeclaration(':where(.layout-container)', 'max-inline-size')).toBe(
+      'var(--layout-container-max)',
+    );
+    expect(finalDeclaration(':where(.layout-container-fluid)', 'max-inline-size')).toBe('none');
+    expect(finalDeclaration(':where(.layout-row)', 'display')).toBe('flex');
+    expect(finalDeclaration(':where(.layout-row)', 'flex-wrap')).toBe('wrap');
+    expect(finalDeclaration(':where(.layout-row)', 'gap')).toBe('var(--row-gap)');
+    expect(finalDeclaration(':where(.layout-col)', 'min-inline-size')).toBe('0');
+    expect(finalDeclaration(':where(.layout-col)', 'flex')).toBe('1 0 0%');
+    expect(finalDeclaration(':where(.layout-col)', '--col-span-sm')).toBe('auto');
+    expectSpanSizing('--col-span-sm', 0);
   });
 
   it.each([
-    ['768px', 'var(--layout-columns-md)', 'var(--layout-margin-md)', '--col-span-md'],
-    ['1024px', 'var(--layout-columns-lg)', 'var(--layout-margin-lg)', '--col-span-lg'],
-  ])(
-    'activates the expected columns and outer margin at %s',
-    (breakpoint, columns, margin, span) => {
-      const mediaCss = requiredBlocks(stylesheet, `@media (min-width: ${breakpoint})`).join('\n');
-
-      expect(
-        lastDeclaration(mediaCss, ':where(.layout-container, .layout-row)', '--layout-columns'),
-      ).toBe(columns);
-      expect(lastDeclaration(mediaCss, ':where(.layout-container)', 'padding-inline')).toBe(margin);
-      expectSpanSizing(mediaCss, span);
-    },
-  );
-
-  it('uses the four-column, 16px-margin grid below the medium breakpoint', () => {
-    const css = baseCss(stylesheet);
-
-    expect(lastDeclaration(css, ':where(.layout-container)', '--layout-columns')).toBe(
+    [
+      767,
       'var(--layout-columns-sm)',
-    );
-    expect(lastDeclaration(css, ':where(.layout-container)', 'padding-inline')).toBe(
       'var(--layout-margin-sm)',
+      'var(--row-gap-sm)',
+      'var(--col-order-sm, 0)',
+    ],
+    [
+      768,
+      'var(--layout-columns-md)',
+      'var(--layout-margin-md)',
+      'var(--row-gap-md, var(--row-gap-sm))',
+      'var(--col-order-md, var(--col-order-sm, 0))',
+    ],
+    [
+      1023,
+      'var(--layout-columns-md)',
+      'var(--layout-margin-md)',
+      'var(--row-gap-md, var(--row-gap-sm))',
+      'var(--col-order-md, var(--col-order-sm, 0))',
+    ],
+    [
+      1024,
+      'var(--layout-columns-lg)',
+      'var(--layout-margin-lg)',
+      'var(--row-gap-lg, var(--row-gap-md, var(--row-gap-sm)))',
+      'var(--col-order-lg, var(--col-order-md, var(--col-order-sm, 0)))',
+    ],
+    [
+      1439,
+      'var(--layout-columns-lg)',
+      'var(--layout-margin-lg)',
+      'var(--row-gap-lg, var(--row-gap-md, var(--row-gap-sm)))',
+      'var(--col-order-lg, var(--col-order-md, var(--col-order-sm, 0)))',
+    ],
+    [
+      1440,
+      'var(--layout-columns-xl)',
+      'var(--layout-margin-lg)',
+      'var(--row-gap-xl, var(--row-gap-lg, var(--row-gap-md, var(--row-gap-sm))))',
+      'var(--col-order-xl, var(--col-order-lg, var(--col-order-md, var(--col-order-sm, 0))))',
+    ],
+  ])('applies the complete grid cascade at %ipx', (viewport, columns, margin, rowGap, order) => {
+    expect(finalDeclaration(':where(.layout-container)', '--layout-columns', viewport)).toBe(
+      columns,
     );
-    expect(lastDeclaration(css, ':where(.layout-row)', '--layout-columns')).toBe(
-      'var(--layout-columns-sm)',
-    );
-    expect(lastDeclaration(css, ':where(.layout-row)', '--row-gap-sm')).toBe(
-      'var(--layout-gutter)',
-    );
+    expect(finalDeclaration(':where(.layout-row)', '--layout-columns', viewport)).toBe(columns);
+    expect(finalDeclaration(':where(.layout-container)', 'padding-inline', viewport)).toBe(margin);
+    expect(finalDeclaration(':where(.layout-row)', '--row-gap', viewport)).toBe(rowGap);
+    expect(finalDeclaration(':where(.layout-col)', 'order', viewport)).toBe(order);
   });
 
-  it('keeps 12 columns and flexible outer margins at the 1440px container cap', () => {
-    const mediaCss = requiredBlocks(stylesheet, '@media (min-width: 1440px)').join('\n');
-    const capCss = `${baseCss(stylesheet)}\n${mediaCss}`;
+  it.each([
+    [768, '--col-span-md'],
+    [1024, '--col-span-lg'],
+    [1440, '--col-span-xl'],
+  ])('activates %s column sizing at its breakpoint', (viewport, span) => {
+    expectSpanSizing(span, viewport);
+  });
 
-    expect(lastDeclaration(capCss, ':where(.layout-container)', 'margin-inline')).toBe('auto');
-    expect(lastDeclaration(capCss, ':where(.layout-container)', 'max-inline-size')).toBe(
+  it('uses only the exact supported conditions for grid breakpoint declarations', () => {
+    const supported = new Set(breakpoints);
+
+    css.walkRules((rule) => {
+      if (!rule.selector.includes('.layout-')) return;
+      for (const media of mediaAncestors(rule)) {
+        const width = minimumWidth(media);
+        expect(width, `Unexpected grid media query: ${media.params}`).toBeDefined();
+        expect(supported.has(width as 768), `Unsupported grid breakpoint: ${media.params}`).toBe(
+          true,
+        );
+      }
+    });
+  });
+
+  it('preserves the capped, centered container through the XL breakpoint', () => {
+    expect(finalDeclaration(':where(.layout-container)', 'margin-inline', 1440)).toBe('auto');
+    expect(finalDeclaration(':where(.layout-container)', 'max-inline-size', 1440)).toBe(
       'var(--layout-container-max)',
     );
-    expect(
-      lastDeclaration(mediaCss, ':where(.layout-container, .layout-row)', '--layout-columns'),
-    ).toBe('var(--layout-columns-xl)');
-    expectSpanSizing(mediaCss, '--col-span-xl');
   });
 });
