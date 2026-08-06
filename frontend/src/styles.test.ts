@@ -1,4 +1,4 @@
-import postcss, { type AtRule, type Rule } from 'postcss';
+import postcss, { type AtRule, type Declaration, type Rule } from 'postcss';
 import { describe, expect, it } from 'vitest';
 
 import stylesheet from './styles.css?raw';
@@ -30,23 +30,46 @@ function appliesAt(rule: Rule, viewport: number) {
   });
 }
 
-function declarations(selector: string, property: string, viewport = 0) {
-  const values: string[] = [];
+function selectorSpecificity(selector: string) {
+  const withoutWhere = selector.replace(/:where\([^)]*\)/g, '');
+  const ids = withoutWhere.match(/#[\w-]+/g)?.length ?? 0;
+  const classes = withoutWhere.match(/\.[\w-]+|\[[^\]]+\]|:(?!:)[\w-]+/g)?.length ?? 0;
+  const elements = withoutWhere.match(/(^|[\s>+~,(])(?:[a-z][\w-]*|::[\w-]+)/gi)?.length ?? 0;
+  return ids * 100 + classes * 10 + elements;
+}
+
+function selectorMatchesContract(ruleSelector: string, selector: string) {
   const combinedGridSelector = ':where(.layout-container, .layout-row)';
+  const target = compact(selector);
+  const plainTarget = target.match(/^:where\((.+)\)$/)?.[1];
+
+  return (
+    ruleSelector === target ||
+    ruleSelector === plainTarget ||
+    (ruleSelector === combinedGridSelector &&
+      [':where(.layout-container)', ':where(.layout-row)'].includes(target))
+  );
+}
+
+function declarations(selector: string, property: string, viewport = 0) {
+  const matches: Array<{ declaration: Declaration; specificity: number; order: number }> = [];
+  let order = 0;
 
   css.walkRules((rule) => {
     const ruleSelector = compact(rule.selector);
-    const selectorMatches =
-      ruleSelector === compact(selector) ||
-      (ruleSelector === combinedGridSelector &&
-        [':where(.layout-container)', ':where(.layout-row)'].includes(selector));
-    if (!selectorMatches || !appliesAt(rule, viewport)) return;
+    if (!selectorMatchesContract(ruleSelector, selector) || !appliesAt(rule, viewport)) return;
     rule.each((node) => {
-      if (node.type === 'decl' && node.prop === property) values.push(compact(node.value));
+      if (node.type === 'decl' && node.prop === property) {
+        matches.push({
+          declaration: node,
+          specificity: selectorSpecificity(ruleSelector),
+          order: order++,
+        });
+      }
     });
   });
 
-  return values;
+  return matches;
 }
 
 function finalDeclaration(selector: string, property: string, viewport = 0) {
@@ -54,7 +77,15 @@ function finalDeclaration(selector: string, property: string, viewport = 0) {
   expect(values, `Expected ${selector} to declare ${property} at ${viewport}px`).not.toHaveLength(
     0,
   );
-  return values.at(-1);
+  const winner = values
+    .sort(
+      (left, right) =>
+        Number(left.declaration.important) - Number(right.declaration.important) ||
+        left.specificity - right.specificity ||
+        left.order - right.order,
+    )
+    .at(-1);
+  return compact(winner!.declaration.value);
 }
 
 function spanFormula(span: string) {
@@ -164,6 +195,16 @@ describe('responsive grid CSS contract', () => {
     [1024, '--col-span-lg'],
     [1440, '--col-span-xl'],
   ])('activates %s column sizing at its breakpoint', (viewport, span) => {
+    const selector = `:where(.layout-col[style*='${span}'])`;
+    const formula = spanFormula(span);
+    for (const property of ['flex', 'max-inline-size']) {
+      const earlierValues = declarations(selector, property, viewport - 1).map(({ declaration }) =>
+        compact(declaration.value),
+      );
+      expect(earlierValues, `${span} must not size columns below ${viewport}px`).not.toContain(
+        property === 'flex' ? `0 0 ${formula}` : formula,
+      );
+    }
     expectSpanSizing(span, viewport);
   });
 
