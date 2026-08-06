@@ -13,7 +13,7 @@
   --layout-margin-sm: 16px;
   --layout-margin-md: 24px;
   --layout-margin-lg: 32px;
-  --layout-container-max: 90rem;
+  --layout-container-max: 1440px;
 }
 
 :root {
@@ -540,7 +540,7 @@ a:focus-visible {
 }
 
 .page-frame {
-  max-width: 90rem;
+  max-width: var(--layout-container-max);
 }
 
 .hero,
