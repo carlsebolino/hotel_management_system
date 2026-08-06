@@ -45,12 +45,32 @@ Run the React-to-CSS-variable component contract while editing
 npm test -- src/components/layouts.test.tsx
 ```
 
+This suite covers both parts of the layout API:
+
+- `Container`, `Row`, and `Col`: fixed/fluid classes, consumer attributes and
+  events, scalar values, complete four-breakpoint mappings, sparse responsive
+  values, numeric length conversion, spans, orders, and gaps.
+- `Stack`: class and child rendering, consumer attributes and styles, all four
+  responsive suffixes, boolean `flex` shorthand conversion, and every exposed
+  flex, alignment, spacing, sizing, and positioning prop.
+
+These assertions inspect the inline custom properties emitted by React. They
+do not claim that JSDOM calculated the corresponding CSS layout.
+
 Run breakpoint boundaries, grid formulas, and cascade rules while editing
 `styles.css`:
 
 ```bash
 npm test -- src/styles.test.ts
 ```
+
+This suite reads `src/styles.css` directly and parses it with PostCSS. It checks
+the grid tokens and base mechanics, declarations immediately before and at
+each breakpoint, row-gap and column-order fallback chains, responsive span
+activation, supported media-query conditions, container capping, and the
+cascade inspector's own selector/specificity/layer behavior. Direct source
+loading is intentional: the contract must not depend on a Vite or Tailwind
+transform changing what the test parses.
 
 To keep either suite running during development, invoke Vitest without the
 package script's `run` mode:
@@ -104,15 +124,16 @@ and formatting drift.
 
 ## Coverage matrix
 
-| Contract                   | Component test                                        | Stylesheet test                                                 |
-| -------------------------- | ----------------------------------------------------- | --------------------------------------------------------------- |
-| Fixed and fluid containers | Class composition and HTML attributes                 | Width, centering, maximum width, padding, and fluid override    |
-| Row gutters                | Scalar and all responsive prop mappings               | Base gutter plus `sm` → `md` → `lg` → `xl` fallback chain       |
-| Column spans               | Scalar and sparse responsive prop mappings            | Span formula, activation boundary, and pre-boundary inactivity  |
-| Column ordering            | Scalar and sparse responsive prop mappings            | Effective fallback chain on both sides of every breakpoint      |
-| Breakpoint thresholds      | Variable suffix mapping                               | `767/768`, `1023/1024`, and `1439/1440` boundary pairs          |
-| Supported media queries    | Not applicable                                        | Rejects grid rules outside `768px`, `1024px`, and `1440px`      |
-| Consumer integration       | Classes, inline-style merging, attributes, and events | Low-specificity selectors and cascade/layer regression fixtures |
+| Contract                   | Component test                                         | Stylesheet test                                                 |
+| -------------------------- | ------------------------------------------------------ | --------------------------------------------------------------- |
+| Fixed and fluid containers | Class composition and HTML attributes                  | Width, centering, maximum width, padding, and fluid override    |
+| Row gutters                | Scalar and all responsive prop mappings                | Base gutter plus `sm` → `md` → `lg` → `xl` fallback chain       |
+| Column spans               | Scalar and sparse responsive prop mappings             | Span formula, activation boundary, and pre-boundary inactivity  |
+| Column ordering            | Scalar and sparse responsive prop mappings             | Effective fallback chain on both sides of every breakpoint      |
+| Breakpoint thresholds      | Variable suffix mapping                                | `767/768`, `1023/1024`, and `1439/1440` boundary pairs          |
+| Supported media queries    | Not applicable                                         | Rejects grid rules outside `768px`, `1024px`, and `1440px`      |
+| Consumer integration       | Classes, inline-style merging, attributes, and events  | Low-specificity selectors and cascade/layer regression fixtures |
+| `Stack` prop serialization | Every public prop and representative responsive values | Not covered by the grid-specific stylesheet contract            |
 
 The stylesheet suite parses the production CSS with PostCSS instead of merely
 searching source text. Its cascade inspector accounts for media-query
@@ -135,6 +156,11 @@ gains rules that depend on intrinsic sizing, writing modes, zoom, sub-pixel
 rounding, or browser-specific flex behavior. For the current token-and-formula
 implementation, the deterministic suites cover the change-prone boundaries
 without duplicating browser engine behavior.
+
+The component suite verifies that `Stack` emits the expected custom properties,
+but `styles.test.ts` does not currently assert the large responsive fallback
+matrix for `.stack`. Add focused stylesheet assertions if the Stack CSS
+fallback rules become independently generated or start changing frequently.
 
 When adding a breakpoint, update the public responsive keys and suffixes, the
 CSS media queries and fallback chains, the boundary table in the stylesheet

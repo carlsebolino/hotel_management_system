@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { Col, Container, Row } from './layouts';
+import { Col, Container, Row, Stack } from './layouts';
 
 describe('grid layout primitives', () => {
   it('renders fixed and fluid containers without losing consumer attributes', () => {
@@ -89,6 +89,28 @@ describe('grid layout primitives', () => {
     expect(style.getPropertyValue('--col-order-xl')).toBe('1');
   });
 
+  it('maps every responsive column span and order to the matching suffix', () => {
+    render(
+      <Col
+        aria-label="column"
+        order={{ small: 4, medium: 3, large: 2, extraLarge: 1 }}
+        span={{ small: 4, medium: 6, large: 8, extraLarge: 12 }}
+      >
+        Content
+      </Col>,
+    );
+
+    const style = screen.getByLabelText('column').style;
+    expect(style.getPropertyValue('--col-span-sm')).toBe('4');
+    expect(style.getPropertyValue('--col-span-md')).toBe('6');
+    expect(style.getPropertyValue('--col-span-lg')).toBe('8');
+    expect(style.getPropertyValue('--col-span-xl')).toBe('12');
+    expect(style.getPropertyValue('--col-order-sm')).toBe('4');
+    expect(style.getPropertyValue('--col-order-md')).toBe('3');
+    expect(style.getPropertyValue('--col-order-lg')).toBe('2');
+    expect(style.getPropertyValue('--col-order-xl')).toBe('1');
+  });
+
   it('forwards grid event handlers', () => {
     const onClick = vi.fn();
     render(
@@ -99,5 +121,140 @@ describe('grid layout primitives', () => {
 
     screen.getByLabelText('row').click();
     expect(onClick).toHaveBeenCalledOnce();
+  });
+});
+
+describe('Stack layout primitive', () => {
+  it('renders its base class, children, consumer class, and HTML attributes', () => {
+    render(
+      <Stack aria-label="stack" className="toolbar" data-layout="actions">
+        <button type="button">Save</button>
+      </Stack>,
+    );
+
+    const stack = screen.getByLabelText('stack');
+    expect(stack).toHaveClass('stack', 'toolbar');
+    expect(stack).toHaveAttribute('data-layout', 'actions');
+    expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
+  });
+
+  it('maps scalar values to small variables and converts only numeric lengths to pixels', () => {
+    render(
+      <Stack
+        aria-label="stack"
+        direction="row"
+        flexGrow={2}
+        gap={12}
+        marginTop={0}
+        order={3}
+        style={{ color: 'green' }}
+      >
+        Content
+      </Stack>,
+    );
+
+    const stack = screen.getByLabelText('stack');
+    expect(stack.style.color).toBe('green');
+    expect(stack.style.getPropertyValue('--stack-direction-sm')).toBe('row');
+    expect(stack.style.getPropertyValue('--stack-flex-grow-sm')).toBe('2');
+    expect(stack.style.getPropertyValue('--stack-gap-sm')).toBe('12px');
+    expect(stack.style.getPropertyValue('--stack-margin-top-sm')).toBe('0');
+    expect(stack.style.getPropertyValue('--stack-order-sm')).toBe('3');
+    expect(stack.style.getPropertyValue('--stack-gap-md')).toBe('');
+  });
+
+  it('maps all public breakpoint names for representative flex and length props', () => {
+    render(
+      <Stack
+        aria-label="stack"
+        direction={{
+          small: 'column',
+          medium: 'row',
+          large: 'row-reverse',
+          extraLarge: 'column-reverse',
+        }}
+        gap={{ small: 8, medium: '1rem', large: 24, extraLarge: 'clamp(1rem, 2vw, 2rem)' }}
+      >
+        Content
+      </Stack>,
+    );
+
+    const style = screen.getByLabelText('stack').style;
+    expect(style.getPropertyValue('--stack-direction-sm')).toBe('column');
+    expect(style.getPropertyValue('--stack-direction-md')).toBe('row');
+    expect(style.getPropertyValue('--stack-direction-lg')).toBe('row-reverse');
+    expect(style.getPropertyValue('--stack-direction-xl')).toBe('column-reverse');
+    expect(style.getPropertyValue('--stack-gap-sm')).toBe('8px');
+    expect(style.getPropertyValue('--stack-gap-md')).toBe('1rem');
+    expect(style.getPropertyValue('--stack-gap-lg')).toBe('24px');
+    expect(style.getPropertyValue('--stack-gap-xl')).toBe('clamp(1rem, 2vw, 2rem)');
+  });
+
+  it('serializes boolean flex shorthand values at their requested breakpoints', () => {
+    render(
+      <Stack aria-label="stack" flex={{ small: true, medium: false, extraLarge: 2 }}>
+        Content
+      </Stack>,
+    );
+
+    const style = screen.getByLabelText('stack').style;
+    expect(style.getPropertyValue('--stack-flex-sm')).toBe('1 1 0%');
+    expect(style.getPropertyValue('--stack-flex-md')).toBe('0 0 auto');
+    expect(style.getPropertyValue('--stack-flex-lg')).toBe('');
+    expect(style.getPropertyValue('--stack-flex-xl')).toBe('2');
+  });
+
+  it('maps positioning, sizing, spacing, alignment, and wrapping props', () => {
+    render(
+      <Stack
+        alignSelf="center"
+        aria-label="stack"
+        bottom={4}
+        flexBasis={100}
+        flexShrink={0}
+        flexWrap="wrap"
+        justifySelf="end"
+        left="auto"
+        margin="1rem"
+        marginBlock={8}
+        marginBottom={12}
+        marginInline={16}
+        marginLeft={20}
+        marginRight={24}
+        minWidth={0}
+        position="absolute"
+        right={28}
+        top={32}
+        width="50%"
+      >
+        Content
+      </Stack>,
+    );
+
+    const style = screen.getByLabelText('stack').style;
+    const expected = {
+      '--stack-align-self-sm': 'center',
+      '--stack-bottom-sm': '4px',
+      '--stack-flex-basis-sm': '100px',
+      '--stack-flex-shrink-sm': '0',
+      '--stack-flex-wrap-sm': 'wrap',
+      '--stack-justify-self-sm': 'end',
+      '--stack-left-sm': 'auto',
+      '--stack-margin-sm': '1rem',
+      '--stack-margin-block-sm': '8px',
+      '--stack-margin-bottom-sm': '12px',
+      '--stack-margin-inline-sm': '16px',
+      '--stack-margin-left-sm': '20px',
+      '--stack-margin-right-sm': '24px',
+      '--stack-min-width-sm': '0',
+      '--stack-position-sm': 'absolute',
+      '--stack-right-sm': '28px',
+      '--stack-top-sm': '32px',
+      '--stack-width-sm': '50%',
+    };
+
+    for (const [property, value] of Object.entries(expected)) {
+      expect(style.getPropertyValue(property), property).toBe(value);
+    }
   });
 });
