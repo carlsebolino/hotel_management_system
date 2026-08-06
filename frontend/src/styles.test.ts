@@ -51,11 +51,11 @@ function selectorMatchesContract(ruleSelector: string, selector: string) {
   );
 }
 
-function declarations(selector: string, property: string, viewport = 0) {
+function declarations(selector: string, property: string, viewport = 0, stylesheetRoot = css) {
   const matches: Array<{ declaration: Declaration; specificity: number; order: number }> = [];
   let order = 0;
 
-  css.walkRules((rule) => {
+  stylesheetRoot.walkRules((rule) => {
     const ruleSelector = compact(rule.selector);
     if (!selectorMatchesContract(ruleSelector, selector) || !appliesAt(rule, viewport)) return;
     rule.each((node) => {
@@ -100,6 +100,16 @@ function expectSpanSizing(span: string, viewport: number) {
   const formula = spanFormula(span);
   expect(finalDeclaration(selector, 'flex', viewport)).toBe(`0 0 ${formula}`);
   expect(finalDeclaration(selector, 'max-inline-size', viewport)).toBe(formula);
+}
+
+function expectSpanInactive(span: string, viewport: number, stylesheetRoot = css) {
+  const selector = `:where(.layout-col[style*='${span}'])`;
+  for (const property of ['flex', 'max-inline-size']) {
+    expect(
+      declarations(selector, property, viewport - 1, stylesheetRoot),
+      `${span} must not declare ${property} below ${viewport}px`,
+    ).toHaveLength(0);
+  }
 }
 
 describe('responsive grid CSS contract', () => {
@@ -195,17 +205,23 @@ describe('responsive grid CSS contract', () => {
     [1024, '--col-span-lg'],
     [1440, '--col-span-xl'],
   ])('activates %s column sizing at its breakpoint', (viewport, span) => {
-    const selector = `:where(.layout-col[style*='${span}'])`;
-    const formula = spanFormula(span);
-    for (const property of ['flex', 'max-inline-size']) {
-      const earlierValues = declarations(selector, property, viewport - 1).map(({ declaration }) =>
-        compact(declaration.value),
-      );
-      expect(earlierValues, `${span} must not size columns below ${viewport}px`).not.toContain(
-        property === 'flex' ? `0 0 ${formula}` : formula,
-      );
-    }
+    expectSpanInactive(span, viewport);
     expectSpanSizing(span, viewport);
+  });
+
+  it.each([
+    ['flex', '0 0 50%'],
+    ['max-inline-size', '50%'],
+  ])('rejects a premature responsive span declaration for %s', (property, value) => {
+    const fixture = postcss.parse(`
+      :where(.layout-col[style*='--col-span-md']) {
+        ${property}: ${value};
+      }
+    `);
+
+    expect(() => expectSpanInactive('--col-span-md', 768, fixture)).toThrowError(
+      `--col-span-md must not declare ${property} below 768px`,
+    );
   });
 
   it('uses only the exact supported conditions for grid breakpoint declarations', () => {
