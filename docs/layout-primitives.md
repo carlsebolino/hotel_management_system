@@ -24,6 +24,12 @@ rules and can be changed in one place:
 | Large       | `1024px–1439px` | `16px` | `32px`   | `12`    |
 | Extra large | `1440px and up` | `16px` | Flexible | `12`    |
 
+At extra-large widths, the container retains its `1440px` maximum inline size
+and remains centered. Its outer whitespace therefore grows with the viewport,
+providing the specified flexible margin while the grid keeps 12 columns and a
+16px gutter. The container's 32px inline padding also preserves the large-grid
+minimum margin at the 1440px boundary.
+
 ## Bootstrap-style usage
 
 ```tsx

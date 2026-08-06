@@ -13,7 +13,7 @@
   --layout-margin-sm: 16px;
   --layout-margin-md: 24px;
   --layout-margin-lg: 32px;
-  --layout-container-max: 90rem;
+  --layout-container-max: 1440px;
 }
 
 :root {
@@ -175,10 +175,6 @@ a:focus-visible {
   @media (min-width: 1440px) {
     :where(.layout-container, .layout-row) {
       --layout-columns: var(--layout-columns-xl);
-    }
-
-    :where(.layout-container) {
-      max-inline-size: none;
     }
 
     :where(.layout-row) {
@@ -544,7 +540,7 @@ a:focus-visible {
 }
 
 .page-frame {
-  max-width: 90rem;
+  max-width: var(--layout-container-max);
 }
 
 .hero,
