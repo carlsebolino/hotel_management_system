@@ -96,6 +96,7 @@ function createCascadeInspector(root: Root) {
       declaration: Declaration;
       specificity: Specificity;
       layer?: string;
+      span?: string;
       order: number;
     }[] = [];
     let order = 0;
@@ -108,7 +109,8 @@ function createCascadeInspector(root: Root) {
         const matchesSelector = targetClass
           ? new RegExp(`${targetClass.replace('.', '\\.')}(?![\\w-])`).test(
               rightmostCompound(branch),
-            ) && branchSpan === targetSpan
+            ) &&
+            (branchSpan === targetSpan || (targetSpan !== undefined && branchSpan === undefined))
           : compact(branch) === compact(selector);
         if (!matchesSelector) continue;
         rule.each((node) => {
@@ -117,6 +119,7 @@ function createCascadeInspector(root: Root) {
               declaration: node,
               specificity: selectorSpecificity(branch),
               layer: layerName(node),
+              span: branchSpan,
               order: order++,
             });
           }
@@ -133,7 +136,9 @@ function createCascadeInspector(root: Root) {
     );
     const winner = values
       .sort((left, right) => {
-        const important = Number(left.declaration.important) - Number(right.declaration.important);
+        const important =
+          Number(Boolean(left.declaration.important)) -
+          Number(Boolean(right.declaration.important));
         if (important) return important;
         const unlayered = layerOrder.length;
         const leftLayer = left.layer === undefined ? unlayered : layerOrder.indexOf(left.layer);
@@ -177,7 +182,9 @@ function expectSpanInactive(span: string, viewport: number, inspector = producti
   const selector = `:where(.layout-col[style*='${span}'])`;
   for (const property of ['flex', 'max-inline-size']) {
     expect(
-      inspector.declarations(selector, property, viewport - 1),
+      inspector
+        .declarations(selector, property, viewport - 1)
+        .filter(({ span: declarationSpan }) => declarationSpan === span),
       `${span} must not declare ${property} below ${viewport}px`,
     ).toHaveLength(0);
   }
@@ -356,8 +363,19 @@ describe('cascade inspector regressions', () => {
       inspector.finalDeclaration(":where(.layout-col[style*='--col-span-md'])", 'flex', 768),
     ).toBe('0 0 50%');
     expect(
-      inspector.declarations(":where(.layout-col[style*='--col-span-md'])", 'flex', 767),
-    ).toHaveLength(0);
+      inspector.finalDeclaration(":where(.layout-col[style*='--col-span-md'])", 'flex', 767),
+    ).toBe('1 0 0%');
+  });
+
+  it('includes generic column rules when resolving a span-bearing column', () => {
+    const inspector = inspectSynthetic(`
+      .layout-col[style*='--col-span-md'] { flex: 0 0 50%; }
+      .layout-col { flex: 1 0 0% !important; }
+    `);
+
+    expect(inspector.finalDeclaration(":where(.layout-col[style*='--col-span-md'])", 'flex')).toBe(
+      '1 0 0%',
+    );
   });
 
   it('compares specificity components rather than encoding them as decimal digits', () => {
