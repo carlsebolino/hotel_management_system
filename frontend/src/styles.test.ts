@@ -2,90 +2,128 @@ import { describe, expect, it } from 'vitest';
 
 import stylesheet from './styles.css?raw';
 
-function blockStartingWith(source: string, marker: string) {
-  const markerIndex = source.indexOf(marker);
-  expect(markerIndex, `Expected to find ${marker}`).toBeGreaterThanOrEqual(0);
+function activeCss(source: string) {
+  return source.replace(/\/\*[\s\S]*?\*\//g, '');
+}
 
-  const openingBrace = source.indexOf('{', markerIndex);
-  expect(openingBrace, `Expected ${marker} to open a block`).toBeGreaterThanOrEqual(0);
+function blocksStartingWith(source: string, marker: string) {
+  const blocks: string[] = [];
+  const css = activeCss(source);
+  let searchFrom = 0;
 
-  let depth = 0;
-  for (let index = openingBrace; index < source.length; index += 1) {
-    if (source[index] === '{') depth += 1;
-    if (source[index] === '}') depth -= 1;
-    if (depth === 0) return source.slice(openingBrace + 1, index);
+  while (searchFrom < css.length) {
+    const markerIndex = css.indexOf(marker, searchFrom);
+    if (markerIndex < 0) break;
+
+    const openingBrace = css.indexOf('{', markerIndex + marker.length);
+    if (openingBrace < 0) break;
+
+    let depth = 0;
+    for (let index = openingBrace; index < css.length; index += 1) {
+      if (css[index] === '{') depth += 1;
+      if (css[index] === '}') depth -= 1;
+      if (depth === 0) {
+        blocks.push(css.slice(openingBrace + 1, index));
+        searchFrom = index + 1;
+        break;
+      }
+    }
+
+    if (depth !== 0) throw new Error(`Expected ${marker} to close its block`);
   }
 
-  throw new Error(`Expected ${marker} to close its block`);
+  return blocks;
 }
 
-function compact(value: string) {
-  return value.replace(/\s+/g, ' ').trim();
+function blocksFor(source: string, marker: string) {
+  const blocks = blocksStartingWith(source, marker);
+  expect(blocks, `Expected to find active rule ${marker}`).not.toHaveLength(0);
+  return blocks;
 }
+
+function lastDeclaration(source: string, selector: string, property: string) {
+  return lastDeclarationInBlocks(blocksFor(source, selector), selector, property);
+}
+
+function lastDeclarationInBlocks(blocks: string[], selector: string, property: string) {
+  const declarations = blocks
+    .map((block) => block.match(new RegExp(`(?:^|;)\\s*${property}\\s*:\\s*([^;]+)`))?.[1].trim())
+    .filter((value): value is string => value !== undefined);
+
+  expect(declarations, `Expected ${selector} to declare ${property}`).not.toHaveLength(0);
+  return declarations.at(-1);
+}
+
+describe('CSS rule inspection', () => {
+  it('ignores commented-out rules', () => {
+    expect(blocksStartingWith('/* @media (min-width: 768px) { .example {} } */', '@media')).toEqual(
+      [],
+    );
+  });
+
+  it('uses the final declaration from repeated rules', () => {
+    const css = '.example { color: green; } .example { color: red; }';
+    expect(lastDeclaration(css, '.example', 'color')).toBe('red');
+  });
+});
 
 describe('responsive grid contract', () => {
   it('keeps the shared gutter, column counts, margins, and container cap', () => {
-    const root = compact(blockStartingWith(stylesheet, ':root'));
+    const rootBlocks = blocksFor(stylesheet, ':root');
 
-    expect(root).toContain('--layout-gutter: 16px;');
-    expect(root).toContain('--layout-columns-sm: 4;');
-    expect(root).toContain('--layout-columns-md: 8;');
-    expect(root).toContain('--layout-columns-lg: 12;');
-    expect(root).toContain('--layout-columns-xl: 12;');
-    expect(root).toContain('--layout-margin-sm: 16px;');
-    expect(root).toContain('--layout-margin-md: 24px;');
-    expect(root).toContain('--layout-margin-lg: 32px;');
-    expect(root).toContain('--layout-container-max: 1440px;');
+    expect(lastDeclarationInBlocks(rootBlocks, ':root', '--layout-gutter')).toBe('16px');
+    expect(lastDeclarationInBlocks(rootBlocks, ':root', '--layout-columns-sm')).toBe('4');
+    expect(lastDeclarationInBlocks(rootBlocks, ':root', '--layout-columns-md')).toBe('8');
+    expect(lastDeclarationInBlocks(rootBlocks, ':root', '--layout-columns-lg')).toBe('12');
+    expect(lastDeclarationInBlocks(rootBlocks, ':root', '--layout-columns-xl')).toBe('12');
+    expect(lastDeclarationInBlocks(rootBlocks, ':root', '--layout-margin-sm')).toBe('16px');
+    expect(lastDeclarationInBlocks(rootBlocks, ':root', '--layout-margin-md')).toBe('24px');
+    expect(lastDeclarationInBlocks(rootBlocks, ':root', '--layout-margin-lg')).toBe('32px');
+    expect(lastDeclarationInBlocks(rootBlocks, ':root', '--layout-container-max')).toBe('1440px');
   });
 
   it.each([
-    {
-      breakpoint: '768px',
-      columns: 'var(--layout-columns-md)',
-      margin: 'var(--layout-margin-md)',
-      span: '--col-span-md',
-    },
-    {
-      breakpoint: '1024px',
-      columns: 'var(--layout-columns-lg)',
-      margin: 'var(--layout-margin-lg)',
-      span: '--col-span-lg',
-    },
-  ])(
-    'activates the expected columns and outer margin at $breakpoint',
-    ({ breakpoint, columns, margin, span }) => {
-      const mediaRule = compact(blockStartingWith(stylesheet, `@media (min-width: ${breakpoint})`));
+    ['768px', 'var(--layout-columns-md)', 'var(--layout-margin-md)', '--col-span-md'],
+    ['1024px', 'var(--layout-columns-lg)', 'var(--layout-margin-lg)', '--col-span-lg'],
+  ])('activates the expected columns and outer margin at %s', (breakpoint, columns, margin, span) => {
+    const mediaCss = blocksFor(stylesheet, `@media (min-width: ${breakpoint})`).join('\n');
 
-      expect(mediaRule).toContain(
-        `:where(.layout-container, .layout-row) { --layout-columns: ${columns}; }`,
-      );
-      expect(mediaRule).toContain(
-        `:where(.layout-container) { padding-inline: ${margin}; }`,
-      );
-      expect(mediaRule).toContain(`:where(.layout-col[style*='${span}'])`);
-    },
-  );
+    expect(
+      lastDeclaration(mediaCss, ':where(.layout-container, .layout-row)', '--layout-columns'),
+    ).toBe(columns);
+    expect(lastDeclaration(mediaCss, ':where(.layout-container)', 'padding-inline')).toBe(margin);
+    expect(blocksFor(mediaCss, `:where(.layout-col[style*='${span}'])`)).not.toHaveLength(0);
+  });
 
   it('uses the four-column, 16px-margin grid below the medium breakpoint', () => {
-    const containerRule = compact(blockStartingWith(stylesheet, ':where(.layout-container)'));
-    const rowRule = compact(blockStartingWith(stylesheet, ':where(.layout-row)'));
+    const defaultCss = stylesheet.slice(0, stylesheet.indexOf('@media'));
 
-    expect(containerRule).toContain('--layout-columns: var(--layout-columns-sm);');
-    expect(containerRule).toContain('padding-inline: var(--layout-margin-sm);');
-    expect(rowRule).toContain('--layout-columns: var(--layout-columns-sm);');
-    expect(rowRule).toContain('--row-gap-sm: var(--layout-gutter);');
+    expect(lastDeclaration(defaultCss, ':where(.layout-container)', '--layout-columns')).toBe(
+      'var(--layout-columns-sm)',
+    );
+    expect(lastDeclaration(defaultCss, ':where(.layout-container)', 'padding-inline')).toBe(
+      'var(--layout-margin-sm)',
+    );
+    expect(lastDeclaration(defaultCss, ':where(.layout-row)', '--layout-columns')).toBe(
+      'var(--layout-columns-sm)',
+    );
+    expect(lastDeclaration(defaultCss, ':where(.layout-row)', '--row-gap-sm')).toBe(
+      'var(--layout-gutter)',
+    );
   });
 
   it('keeps 12 columns and flexible outer margins at the 1440px container cap', () => {
-    const containerRule = compact(blockStartingWith(stylesheet, ':where(.layout-container)'));
-    const mediaRule = compact(blockStartingWith(stylesheet, '@media (min-width: 1440px)'));
+    const mediaCss = blocksFor(stylesheet, '@media (min-width: 1440px)').join('\n');
+    const defaultCss = stylesheet.slice(0, stylesheet.indexOf('@media'));
 
-    expect(containerRule).toContain('margin-inline: auto;');
-    expect(containerRule).toContain('max-inline-size: var(--layout-container-max);');
-    expect(mediaRule).toContain(
-      ':where(.layout-container, .layout-row) { --layout-columns: var(--layout-columns-xl); }',
+    expect(lastDeclaration(defaultCss, ':where(.layout-container)', 'margin-inline')).toBe('auto');
+    expect(lastDeclaration(defaultCss, ':where(.layout-container)', 'max-inline-size')).toBe(
+      'var(--layout-container-max)',
     );
-    expect(mediaRule).toContain(":where(.layout-col[style*='--col-span-xl'])");
-    expect(mediaRule).not.toContain('padding-inline:');
+    expect(
+      lastDeclaration(mediaCss, ':where(.layout-container, .layout-row)', '--layout-columns'),
+    ).toBe('var(--layout-columns-xl)');
+    expect(blocksFor(mediaCss, ":where(.layout-col[style*='--col-span-xl'])")).not.toHaveLength(0);
+    expect(blocksStartingWith(mediaCss, ':where(.layout-container)')).toEqual([]);
   });
 });
