@@ -177,10 +177,6 @@ a:focus-visible {
       --layout-columns: var(--layout-columns-xl);
     }
 
-    :where(.layout-container) {
-      max-inline-size: none;
-    }
-
     :where(.layout-row) {
       --row-gap: var(--row-gap-xl, var(--row-gap-lg, var(--row-gap-md, var(--row-gap-sm))));
     }
