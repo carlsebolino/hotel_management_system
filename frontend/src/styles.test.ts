@@ -195,6 +195,10 @@ describe('responsive grid CSS contract', () => {
     expect(finalDeclaration(':where(.layout-container-fluid)', 'max-inline-size')).toBe('none');
     expect(finalDeclaration(':where(.layout-row)', 'display')).toBe('flex');
     expect(finalDeclaration(':where(.layout-row)', 'flex-wrap')).toBe('wrap');
+    expect(finalDeclaration(':where(.layout-row)', '--row-gap-sm')).toBe(
+      'var(--layout-gutter)',
+    );
+    expect(finalDeclaration(':where(.layout-row)', '--row-gap')).toBe('var(--row-gap-sm)');
     expect(finalDeclaration(':where(.layout-row)', 'gap')).toBe('var(--row-gap)');
     expect(finalDeclaration(':where(.layout-col)', 'min-inline-size')).toBe('0');
     expect(finalDeclaration(':where(.layout-col)', 'flex')).toBe('1 0 0%');
