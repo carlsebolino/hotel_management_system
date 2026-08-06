@@ -136,7 +136,8 @@ function createCascadeInspector(root: Root) {
   return { declarations, finalDeclaration };
 }
 
-const { declarations, finalDeclaration } = createCascadeInspector(css);
+const productionInspector = createCascadeInspector(css);
+const { finalDeclaration } = productionInspector;
 
 function inspectSynthetic(source: string) {
   return createCascadeInspector(postcss.parse(source));
@@ -156,11 +157,11 @@ function expectSpanSizing(span: string, viewport: number) {
   expect(finalDeclaration(selector, 'max-inline-size', viewport)).toBe(formula);
 }
 
-function expectSpanInactive(span: string, viewport: number, stylesheetRoot = css) {
+function expectSpanInactive(span: string, viewport: number, inspector = productionInspector) {
   const selector = `:where(.layout-col[style*='${span}'])`;
   for (const property of ['flex', 'max-inline-size']) {
     expect(
-      declarations(selector, property, viewport - 1, stylesheetRoot),
+      inspector.declarations(selector, property, viewport - 1),
       `${span} must not declare ${property} below ${viewport}px`,
     ).toHaveLength(0);
   }
@@ -259,7 +260,7 @@ describe('responsive grid CSS contract', () => {
     [1024, '--col-span-lg'],
     [1440, '--col-span-xl'],
   ])('activates %s column sizing at its breakpoint', (viewport, span) => {
-    expectSpanInactive(span, viewport);
+    expectSpanInactive(span, viewport, productionInspector);
     expectSpanSizing(span, viewport);
   });
 
@@ -272,8 +273,9 @@ describe('responsive grid CSS contract', () => {
         ${property}: ${value};
       }
     `);
+    const inspector = createCascadeInspector(fixture);
 
-    expect(() => expectSpanInactive('--col-span-md', 768, fixture)).toThrowError(
+    expect(() => expectSpanInactive('--col-span-md', 768, inspector)).toThrowError(
       `--col-span-md must not declare ${property} below 768px`,
     );
   });
