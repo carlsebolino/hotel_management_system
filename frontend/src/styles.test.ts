@@ -93,13 +93,12 @@ function createCascadeInspector(root: Root) {
       if (!appliesAt(rule, viewport)) return;
       // PostCSS splits selector lists without splitting commas inside :where(), etc.
       for (const branch of rule.selectors) {
-        const compound = rightmostCompound(branch);
-        if (
-          !targetClass ||
-          !new RegExp(`${targetClass.replace('.', '\\.')}(?![\\w-])`).test(compound)
-        ) {
-          continue;
-        }
+        const matchesSelector = targetClass
+          ? new RegExp(`${targetClass.replace('.', '\\.')}(?![\\w-])`).test(
+              rightmostCompound(branch),
+            )
+          : compact(branch) === compact(selector);
+        if (!matchesSelector) continue;
         rule.each((node) => {
           if (node.type === 'decl' && node.prop === property) {
             matches.push({
@@ -303,6 +302,19 @@ describe('responsive grid CSS contract', () => {
 });
 
 describe('cascade inspector regressions', () => {
+  it('matches non-contract selectors explicitly', () => {
+    const inspector = inspectSynthetic(`
+      :root { --shared-token: root-value; }
+      .unrelated { --shared-token: unrelated-value; }
+    `);
+
+    expect(
+      inspector
+        .declarations(':root', '--shared-token')
+        .map(({ declaration }) => declaration.value),
+    ).toEqual(['root-value']);
+  });
+
   it.each([
     ['.layout-row { display: grid; }'],
     ['.page .layout-row { display: grid; }'],
