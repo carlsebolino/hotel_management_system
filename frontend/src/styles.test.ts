@@ -1,8 +1,10 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import postcss, { type AtRule, type Declaration, type Root, type Rule } from 'postcss';
 import { describe, expect, it } from 'vitest';
 
-import stylesheet from './styles.css?raw';
-
+const stylesheet = readFileSync(resolve(process.cwd(), 'src/styles.css'), 'utf8');
 const css = postcss.parse(stylesheet);
 const breakpoints = [768, 1024, 1440] as const;
 
@@ -12,14 +14,16 @@ function compact(value: string) {
 
 function mediaAncestors(rule: Rule) {
   const media: AtRule[] = [];
-  for (let parent = rule.parent; parent; parent = parent.parent) {
+  for (let parent = rule.parent; parent;) {
     if (parent.type === 'atrule' && parent.name === 'media') media.push(parent);
+    const next = parent.parent;
+    parent = next?.type === 'document' ? undefined : next;
   }
   return media;
 }
 
 function minimumWidth(media: AtRule) {
-  const match = media.params.match(/^\(min-width:\s*(\d+)px\)$/);
+  const match = /^\(min-width:\s*(\d+)px\)$/.exec(media.params);
   return match ? Number(match[1]) : undefined;
 }
 
@@ -61,7 +65,11 @@ function rightmostCompound(selector: string) {
 }
 
 function contractClass(selector: string) {
-  return selector.match(/\.layout-(?:container-fluid|container|row|col)(?![\w-])/)?.[0];
+  return /\.layout-(?:container-fluid|container|row|col)(?![\w-])/.exec(selector)?.[0];
+}
+
+function contractSpan(selector: string) {
+  return /--col-span-(?:sm|md|lg|xl)(?![\w-])/.exec(selector)?.[0];
 }
 
 function createCascadeInspector(root: Root) {
@@ -73,30 +81,34 @@ function createCascadeInspector(root: Root) {
   });
 
   function layerName(declaration: Declaration) {
-    for (let parent = declaration.parent; parent; parent = parent.parent) {
+    for (let parent = declaration.parent; parent;) {
       if (parent.type === 'atrule' && parent.name === 'layer') return compact(parent.params);
+      const next = parent.parent;
+      parent = next?.type === 'document' ? undefined : next;
     }
     return undefined;
   }
 
   function declarations(selector: string, property: string, viewport = 0) {
     const targetClass = contractClass(selector);
-    const matches: Array<{
+    const targetSpan = contractSpan(selector);
+    const matches: {
       declaration: Declaration;
       specificity: Specificity;
       layer?: string;
       order: number;
-    }> = [];
+    }[] = [];
     let order = 0;
 
     root.walkRules((rule) => {
       if (!appliesAt(rule, viewport)) return;
       // PostCSS splits selector lists without splitting commas inside :where(), etc.
       for (const branch of rule.selectors) {
+        const branchSpan = contractSpan(branch);
         const matchesSelector = targetClass
           ? new RegExp(`${targetClass.replace('.', '\\.')}(?![\\w-])`).test(
               rightmostCompound(branch),
-            )
+            ) && branchSpan === targetSpan
           : compact(branch) === compact(selector);
         if (!matchesSelector) continue;
         rule.each((node) => {
@@ -119,17 +131,21 @@ function createCascadeInspector(root: Root) {
     expect(values, `Expected ${selector} to declare ${property} at ${viewport}px`).not.toHaveLength(
       0,
     );
-    const winner = values.sort((left, right) => {
-      const important = Number(left.declaration.important) - Number(right.declaration.important);
-      if (important) return important;
-      const unlayered = layerOrder.length;
-      const leftLayer = left.layer === undefined ? unlayered : layerOrder.indexOf(left.layer);
-      const rightLayer = right.layer === undefined ? unlayered : layerOrder.indexOf(right.layer);
-      const layer = left.declaration.important ? rightLayer - leftLayer : leftLayer - rightLayer;
-      return (
-        layer || compareSpecificity(left.specificity, right.specificity) || left.order - right.order
-      );
-    }).at(-1);
+    const winner = values
+      .sort((left, right) => {
+        const important = Number(left.declaration.important) - Number(right.declaration.important);
+        if (important) return important;
+        const unlayered = layerOrder.length;
+        const leftLayer = left.layer === undefined ? unlayered : layerOrder.indexOf(left.layer);
+        const rightLayer = right.layer === undefined ? unlayered : layerOrder.indexOf(right.layer);
+        const layer = left.declaration.important ? rightLayer - leftLayer : leftLayer - rightLayer;
+        return (
+          layer ||
+          compareSpecificity(left.specificity, right.specificity) ||
+          left.order - right.order
+        );
+      })
+      .at(-1);
     return compact(winner!.declaration.value);
   }
 
@@ -195,9 +211,7 @@ describe('responsive grid CSS contract', () => {
     expect(finalDeclaration(':where(.layout-container-fluid)', 'max-inline-size')).toBe('none');
     expect(finalDeclaration(':where(.layout-row)', 'display')).toBe('flex');
     expect(finalDeclaration(':where(.layout-row)', 'flex-wrap')).toBe('wrap');
-    expect(finalDeclaration(':where(.layout-row)', '--row-gap-sm')).toBe(
-      'var(--layout-gutter)',
-    );
+    expect(finalDeclaration(':where(.layout-row)', '--row-gap-sm')).toBe('var(--layout-gutter)');
     expect(finalDeclaration(':where(.layout-row)', '--row-gap')).toBe('var(--row-gap-sm)');
     expect(finalDeclaration(':where(.layout-row)', 'gap')).toBe('var(--row-gap)');
     expect(finalDeclaration(':where(.layout-col)', 'min-inline-size')).toBe('0');
@@ -263,7 +277,7 @@ describe('responsive grid CSS contract', () => {
     [768, '--col-span-md'],
     [1024, '--col-span-lg'],
     [1440, '--col-span-xl'],
-  ])('activates %s column sizing at its breakpoint', (viewport, span) => {
+  ])('activates column sizing at %ipx for %s', (viewport, span) => {
     expectSpanInactive(span, viewport, productionInspector);
     expectSpanSizing(span, viewport);
   });
@@ -285,16 +299,15 @@ describe('responsive grid CSS contract', () => {
   });
 
   it('uses only the exact supported conditions for grid breakpoint declarations', () => {
-    const supported = new Set(breakpoints);
+    const supported = new Set<number>(breakpoints);
 
     css.walkRules((rule) => {
       if (!rule.selector.includes('.layout-')) return;
       for (const media of mediaAncestors(rule)) {
         const width = minimumWidth(media);
         expect(width, `Unexpected grid media query: ${media.params}`).toBeDefined();
-        expect(supported.has(width as 768), `Unsupported grid breakpoint: ${media.params}`).toBe(
-          true,
-        );
+        if (width === undefined) return;
+        expect(supported.has(width), `Unsupported grid breakpoint: ${media.params}`).toBe(true);
       }
     });
   });
@@ -315,9 +328,7 @@ describe('cascade inspector regressions', () => {
     `);
 
     expect(
-      inspector
-        .declarations(':root', '--shared-token')
-        .map(({ declaration }) => declaration.value),
+      inspector.declarations(':root', '--shared-token').map(({ declaration }) => declaration.value),
     ).toEqual(['root-value']);
   });
 
@@ -327,7 +338,26 @@ describe('cascade inspector regressions', () => {
     ['.layout-row.featured { display: grid; }'],
     ['.layout-row, .other { display: grid; }'],
   ])('finds contract rules in %s', (source) => {
-    expect(inspectSynthetic(source).finalDeclaration(':where(.layout-row)', 'display')).toBe('grid');
+    expect(inspectSynthetic(source).finalDeclaration(':where(.layout-row)', 'display')).toBe(
+      'grid',
+    );
+  });
+
+  it('distinguishes generic columns from breakpoint span branches', () => {
+    const inspector = inspectSynthetic(`
+      .layout-col { flex: 1 0 0%; }
+      @media (min-width: 768px) {
+        .layout-col[style*='--col-span-md'] { flex: 0 0 50%; }
+      }
+    `);
+
+    expect(inspector.finalDeclaration(':where(.layout-col)', 'flex', 768)).toBe('1 0 0%');
+    expect(
+      inspector.finalDeclaration(":where(.layout-col[style*='--col-span-md'])", 'flex', 768),
+    ).toBe('0 0 50%');
+    expect(
+      inspector.declarations(":where(.layout-col[style*='--col-span-md'])", 'flex', 767),
+    ).toHaveLength(0);
   });
 
   it('compares specificity components rather than encoding them as decimal digits', () => {
